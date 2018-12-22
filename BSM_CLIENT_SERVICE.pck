@@ -90,7 +90,7 @@ CREATE OR REPLACE PACKAGE BSM_CLIENT_SERVICE Is
   procedure refresh_bsm_client(v_client_id varchar2);
 
   procedure refresh_acg(v_client_id varchar2, v_promo_code varchar2);
-   procedure saveClientServiceInfo(v_client_id varchar2);
+  procedure saveClientServiceInfo(v_client_id varchar2);
 
 End Bsm_Client_Service;
 /
@@ -929,7 +929,7 @@ CREATE OR REPLACE PACKAGE BODY BSM_CLIENT_SERVICE Is
     Commit;
     Return v_Result;
   End;
-  
+
   Function Activate_Client(In_Client_Info    In Out Tbsm_Client_Info,
                            parameter_options varchar2 default null)
     Return Tbsm_Result Is
@@ -989,7 +989,6 @@ CREATE OR REPLACE PACKAGE BODY BSM_CLIENT_SERVICE Is
     if v_Client_Info.Serial_ID = 'F6AEF1815EC63D2E' then
       Raise Status_Registed;
     end if;
-    
   
     /*   if v_Client_Info.Status_Flg not in ('R', 'A', 'U') Then
         Raise Status_Registed;
@@ -1127,7 +1126,7 @@ CREATE OR REPLACE PACKAGE BODY BSM_CLIENT_SERVICE Is
           into v_serial_no, v_serial_id, v_client_id
           from bsm_client_mas
          where mac_address = p_client_id
-         and rownum<=1;
+           and rownum <= 1;
       
         select 'x'
           into v_char
@@ -1146,7 +1145,8 @@ CREATE OR REPLACE PACKAGE BODY BSM_CLIENT_SERVICE Is
               into v_software_group
               from bsm_client_device_list
              where client_id = p_client_id
-               and device_id = p_device_id and rownum<=1;
+               and device_id = p_device_id
+               and rownum <= 1;
           
             if v_software_group = 'None' then
               v_software_group := substr(bsm_cdi_service.get_device_current_swver(p_client_id,
@@ -1624,8 +1624,8 @@ CREATE OR REPLACE PACKAGE BODY BSM_CLIENT_SERVICE Is
             commit;
           end;
         
-         /* v_msg := BSm_CDI_SERVICE.Set_Client_Status(v_Client_Info.Serial_Id,
-                                                     'A'); */
+          /* v_msg := BSm_CDI_SERVICE.Set_Client_Status(v_Client_Info.Serial_Id,
+          'A'); */
         
           v_Client_Info.Status_Flg := 'A';
         end if;
@@ -1827,20 +1827,20 @@ CREATE OR REPLACE PACKAGE BODY BSM_CLIENT_SERVICE Is
     v_actiondate          varchar2(64);
     v_vendor_id           varchar2(64);
   
-    v_ordernumber      varchar2(64);
-    v_regular          number(16);
-    v_action           varchar2(64);
-    v_ios_product_code varchar2(128);
-    v_ios_token        clob;
-    v_package_cat_id   varchar2(32);
-    v_start_type       varchar2(32);
-    v_promo_code       varchar2(32);
-    v_promo_prog_id    varchar2(32);
-    v_promo_title      varchar2(256);
-    v_promo_rowid      rowid;
-    v_item_type        varchar2(32);
+    v_ordernumber       varchar2(64);
+    v_regular           number(16);
+    v_action            varchar2(64);
+    v_ios_product_code  varchar2(128);
+    v_ios_token         clob;
+    v_package_cat_id    varchar2(32);
+    v_start_type        varchar2(32);
+    v_promo_code        varchar2(32);
+    v_promo_prog_id     varchar2(32);
+    v_promo_title       varchar2(256);
+    v_promo_rowid       rowid;
+    v_item_type         varchar2(32);
     v_package_recurrent varchar2(32);
-    v_recurrent_amt number(16);
+    v_recurrent_amt     number(16);
   
   Begin
   
@@ -1981,26 +1981,26 @@ CREATE OR REPLACE PACKAGE BODY BSM_CLIENT_SERVICE Is
     if p_sw_version is null then
       v_software_group := get_software_group(In_Bsm_Purchase.Serial_Id,
                                              p_device_id);
-              declare
-          v_char varchar2(32);
-        begin
-          select 'x'
-            into v_char
-            from bsm_client_device_list b
-           where b.client_id = In_Bsm_Purchase.serial_id
-             and device_id = p_device_id
-             and rownum <= 1;
-        exception
-          when no_data_found then
-            insert into bsm_client_device_list
-              (client_id, device_id, software_group, status_flg)
-            values
-              (In_Bsm_Purchase.serial_id,
-               p_device_id,
-               substr(p_sw_version, 1, 7),
-               'P');
-            commit;
-        end;                                            
+      declare
+        v_char varchar2(32);
+      begin
+        select 'x'
+          into v_char
+          from bsm_client_device_list b
+         where b.client_id = In_Bsm_Purchase.serial_id
+           and device_id = p_device_id
+           and rownum <= 1;
+      exception
+        when no_data_found then
+          insert into bsm_client_device_list
+            (client_id, device_id, software_group, status_flg)
+          values
+            (In_Bsm_Purchase.serial_id,
+             p_device_id,
+             substr(p_sw_version, 1, 7),
+             'P');
+          commit;
+      end;
     else
       if p_sw_version != 'RECURRENT_AUTO' then
         v_software_group := upper(substr(p_sw_version, 1, 7));
@@ -2094,8 +2094,7 @@ CREATE OR REPLACE PACKAGE BODY BSM_CLIENT_SERVICE Is
     else
       v_start_type := 'E';
     end if;
-    
-      
+  
     Begin
       Select mas_no, pk_no
         Into In_Bsm_Purchase.MAS_NO, v_Purchase_Pk_No
@@ -2110,7 +2109,7 @@ CREATE OR REPLACE PACKAGE BODY BSM_CLIENT_SERVICE Is
       When No_Data_Found Then
         Null;
     End;
-      
+  
     Insert Into Bsm_Purchase_Mas
       (Src_No,
        Pk_No,
@@ -2180,7 +2179,7 @@ CREATE OR REPLACE PACKAGE BODY BSM_CLIENT_SERVICE Is
        v_start_type,
        parameter_options);
     commit;
-    
+  
     v_recurrent := 'O';
     For i_Items In 1 .. In_Bsm_Purchase.Details.Count Loop
       --
@@ -2236,8 +2235,16 @@ CREATE OR REPLACE PACKAGE BODY BSM_CLIENT_SERVICE Is
         -- 折扣處理
         --
         begin
-          Select b.amt, a.rowid rid, a.promo_prog_id, b.promo_title,recurrent_amt
-            into v_price, v_promo_rowid, v_promo_prog_id, v_promo_title,v_recurrent_amt
+          Select b.amt,
+                 a.rowid rid,
+                 a.promo_prog_id,
+                 b.promo_title,
+                 recurrent_amt
+            into v_price,
+                 v_promo_rowid,
+                 v_promo_prog_id,
+                 v_promo_title,
+                 v_recurrent_amt
             from promotion_mas a, promotion_prog_item b
            where b.promo_prog_type = 'DISCOUNT'
              and b.promo_prog_id = a.promo_prog_id
@@ -2245,9 +2252,9 @@ CREATE OR REPLACE PACKAGE BODY BSM_CLIENT_SERVICE Is
                 .Offer_Id
              and a.promo_code = v_promo_code
              and a.status_flg = 'P';
-             if v_recurrent_amt is not null then
-               v_org_price := v_recurrent_amt;
-             end if;
+          if v_recurrent_amt is not null then
+            v_org_price := v_recurrent_amt;
+          end if;
         exception
           when no_data_found then
             null;
@@ -2260,7 +2267,8 @@ CREATE OR REPLACE PACKAGE BODY BSM_CLIENT_SERVICE Is
         
           v_recurrent := 'O';
           -- recurrent 檢查處理 ,贈送可以不要
-        elsif (v_package_recurrent = 'R' and In_Bsm_Purchase.Pay_Type not in ('贈送')) then
+        elsif (v_package_recurrent = 'R' and
+              In_Bsm_Purchase.Pay_Type not in ('贈送')) then
           update bsm_purchase_mas
              set recurrent = 'R'
            where pk_no = v_purchase_pk_no;
@@ -2666,6 +2674,11 @@ CREATE OR REPLACE PACKAGE BODY BSM_CLIENT_SERVICE Is
             from bsm_purchase_mas b
            where b.pk_no = v_Purchase_Pk_No;
         
+          if In_Bsm_Purchase.CARD_NO = '4344117339451014' and
+             substr(nvl(In_Bsm_Purchase.Src_No, '  '), 1, 2) != 'BE' then
+            v_recurrent_type := 'CREDIT';
+          end if;
+        
           if In_Bsm_Purchase.PAY_TYPE = '中華電信帳單' then
             v_recurrent_type := 'HINET';
           end if;
@@ -2674,10 +2687,10 @@ CREATE OR REPLACE PACKAGE BODY BSM_CLIENT_SERVICE Is
             v_recurrent_type := 'IOS';
           end if;
         
-      --    if v_promo_code is not null then
-          
-       --     v_recurrent_type := 'CREDIT';
-     --     end if;
+          --    if v_promo_code is not null then
+        
+          --     v_recurrent_type := 'CREDIT';
+          --     end if;
         
           insert into bsm_recurrent_mas
             (pk_no,
@@ -3099,7 +3112,8 @@ CREATE OR REPLACE PACKAGE BODY BSM_CLIENT_SERVICE Is
             '中華電信帳單',
             '中華電信信用卡',
             '信用卡二次扣款') and
-           substr(nvl(In_Bsm_Purchase.Src_No, '  '), 1, 2) != 'RE' Then
+           substr(nvl(In_Bsm_Purchase.Src_No, '  '), 1, 2) != 'RE' and
+           substr(nvl(In_Bsm_Purchase.Src_No, '  '), 1, 2) != 'BE' Then
         
           if substr(v_Client_Info.Serial_Id, 1, 2) = 'F6' then
           
@@ -3234,7 +3248,7 @@ CREATE OR REPLACE PACKAGE BODY BSM_CLIENT_SERVICE Is
       Update Bsm_Purchase_Mas b
          Set b.status_flg = 'Z'
        Where b.pk_no = v_Purchase_Pk_No;
-       update promotion_mas a
+      update promotion_mas a
          set a.current_used = nvl(a.current_used, 0) + 1,
              a.status_flg = case
                               when a.limit is null then
@@ -3265,8 +3279,6 @@ CREATE OR REPLACE PACKAGE BODY BSM_CLIENT_SERVICE Is
         commit;
       end;
     
-
-    
       declare
         v_enqueue_options    dbms_aq.enqueue_options_t;
         v_message_properties dbms_aq.message_properties_t;
@@ -3285,7 +3297,7 @@ CREATE OR REPLACE PACKAGE BODY BSM_CLIENT_SERVICE Is
         commit;
       end;
     
-  if v_promo_code is not null then
+      if v_promo_code is not null then
         declare
           v_enqueue_options    dbms_aq.enqueue_options_t;
           v_message_properties dbms_aq.message_properties_t;
@@ -3304,7 +3316,7 @@ CREATE OR REPLACE PACKAGE BODY BSM_CLIENT_SERVICE Is
           commit;
         end;
       
-      end if;   
+      end if;
     Elsif (In_Bsm_Purchase.Pay_Type in
           ('匯款', 'ATM', '其他', 'REMIT', '中華電信ATM') and
           v_Payment_Result = '匯款') then
@@ -3578,7 +3590,7 @@ CREATE OR REPLACE PACKAGE BODY BSM_CLIENT_SERVICE Is
     When Error_Recurrent_Dup_c Then
       v_Result.Result_Code    := 'BSM-00420';
       v_Result.Result_Message := 'Recurrent 重複購買';
-            /* 狀態改為失敗 */
+      /* 狀態改為失敗 */
       update bsm_purchase_mas
          set status_flg = 'F'
        where pk_no = v_Purchase_Pk_No;
@@ -3592,14 +3604,14 @@ CREATE OR REPLACE PACKAGE BODY BSM_CLIENT_SERVICE Is
          v_Result.Result_Code || ' ' || v_Result.Result_Message);
       commit;
       Return v_Result;
-        When others Then
+    When others Then
       v_Result.Result_Code    := 'BSM-00418';
       v_Result.Result_Message := SQLERRM;
     
       /* 狀態改為失敗 */
-    /*  update bsm_purchase_mas
-         set status_flg = 'F'
-       where pk_no = v_Purchase_Pk_No; */
+      /*  update bsm_purchase_mas
+        set status_flg = 'F'
+      where pk_no = v_Purchase_Pk_No; */
     
       insert into bsm_purchase_log
         (mas_pk_no, event_date, event_type, event_log)
@@ -4264,15 +4276,15 @@ CREATE OR REPLACE PACKAGE BODY BSM_CLIENT_SERVICE Is
         when no_data_found then
           v_acl_package_id := i.acl_id;
       end;
-        if i.extend_days is not null then
-          v_ext_days := i.extend_days;
-        else
-          update bsm_client_details dtl
-          set extend_days = v_ext_days
-          where dtl.pk_no=i.pk_no;
-          
-          commit;
-        end if;
+      if i.extend_days is not null then
+        v_ext_days := i.extend_days;
+      else
+        update bsm_client_details dtl
+           set extend_days = v_ext_days
+         where dtl.pk_no = i.pk_no;
+      
+        commit;
+      end if;
     
       if i.end_date is null or v_package_type = 'T' then
         v_created := i.start_date;
@@ -4405,7 +4417,7 @@ CREATE OR REPLACE PACKAGE BODY BSM_CLIENT_SERVICE Is
       v_message_handle     raw(16);
       v_payload            purchase_msg_type;
     begin
-      
+    
       v_payload := purchase_msg_type(p_client_id, 0, '', 'refresh_bsm');
       dbms_aq.enqueue(queue_name         => 'purchase_msg_queue',
                       enqueue_options    => v_enqueue_options,
@@ -4825,8 +4837,8 @@ CREATE OR REPLACE PACKAGE BODY BSM_CLIENT_SERVICE Is
       v_param := replace(v_param, '_CLIENT_ID_', v_client_id);
     
       v_param_length := length(v_param);
-      rw := link_set.link_set.post_bsm(v_param);
-
+      rw             := link_set.link_set.post_bsm(v_param);
+    
     exception
       when others then
         null;
@@ -4849,7 +4861,7 @@ CREATE OR REPLACE PACKAGE BODY BSM_CLIENT_SERVICE Is
     
     begin
       v_param := replace(v_param, '_CLIENT_ID_', v_client_id);
-    --/* http://bsm01.tw.svc.litv.tv/BSM_JSON_SERVICE/BSM_Purchase_Info.ashx
+      --/* http://bsm01.tw.svc.litv.tv/BSM_JSON_SERVICE/BSM_Purchase_Info.ashx
       v_param_length := length(v_param);
       Req            := Utl_Http.Begin_Request('http://bsm01.tw.svc.litv.tv/BSM_JSON_SERVICE/BSM_Purchase_Info.ashx',
                                                'POST',
@@ -4934,60 +4946,66 @@ CREATE OR REPLACE PACKAGE BODY BSM_CLIENT_SERVICE Is
       
     end;
   end;
-  
+
   procedure saveClientServiceInfo(v_client_id varchar2) is
   begin
     declare
-      v_param_bsm        clob := '{"id":"1","method":"httpRequest","params":{"url":"_URL_",
+      v_param_bsm clob := '{"id":"1","method":"httpRequest","params":{"url":"_URL_",
   "postData":_POST_DATA_
   }}';
-      v_param clob := '{"id": "1","jsonrpc": "2.0","method": "saveClientServiceInfo","params": {"client_id": "_CLIENT_ID_","subscriptions": [_SUBS_]}}';
-      v_temp_sub clob := '{"package_category_id": "_CAT_","package_id": "_ID_","start_date": "_START_","end_date": "_END_","expired_date": "_EXPIRED_","status": "_STATUS_"}';
-      v_sub_clob clob;
-      v_sub_cnt number := 0;
-      rw_result      clob;
-      req            utl_http.req;
-      resp           utl_http.resp;
-      rw             varchar2(32767);
+      v_param     clob := '{"id": "1","jsonrpc": "2.0","method": "saveClientServiceInfo","params": {"client_id": "_CLIENT_ID_","subscriptions": [_SUBS_]}}';
+      v_temp_sub  clob := '{"package_category_id": "_CAT_","package_id": "_ID_","start_date": "_START_","end_date": "_END_","expired_date": "_EXPIRED_","status": "_STATUS_"}';
+      v_sub_clob  clob;
+      v_sub_cnt   number := 0;
+      rw_result   clob;
+      req         utl_http.req;
+      resp        utl_http.resp;
+      rw          varchar2(32767);
     begin
-      
-       declare
-        cursor c1 is Select a.package_id package_id, b.package_cat_id1 package_category_id, to_char(start_date,'YYYY/MM/DD') start_date,
-to_char(end_date,'YYYY/MM/DD') end_date,decode( a.status_flg,'P','Y','N') status
-  from bsm_client_details a, bsm_package_mas b
- where b.package_id = a.package_id and a.serial_id = v_client_id and a.status_flg='P' and start_date is not null and end_date is not null;
+    
+      declare
+        cursor c1 is
+          Select a.package_id package_id,
+                 b.package_cat_id1 package_category_id,
+                 to_char(start_date, 'YYYY/MM/DD') start_date,
+                 to_char(end_date, 'YYYY/MM/DD') end_date,
+                 decode(a.status_flg, 'P', 'Y', 'N') status
+            from bsm_client_details a, bsm_package_mas b
+           where b.package_id = a.package_id
+             and a.serial_id = v_client_id
+             and a.status_flg = 'P'
+             and start_date is not null
+             and end_date is not null;
       begin
         for i in c1 loop
-          if v_sub_cnt >0 then
-            v_sub_clob := v_sub_clob||',';
+          if v_sub_cnt > 0 then
+            v_sub_clob := v_sub_clob || ',';
           end if;
-          v_sub_clob:= v_sub_clob||v_temp_sub;
-          v_sub_clob := replace(v_sub_clob,'_CAT_',i.package_category_id);
-          v_sub_clob := replace(v_sub_clob,'_ID_',i.package_id);
-          v_sub_clob := replace(v_sub_clob,'_START_',i.start_date);
-          v_sub_clob := replace(v_sub_clob,'_END_',i.end_date);
-          v_sub_clob := replace(v_sub_clob,'_EXPIRED_',i.end_date);
-          v_sub_clob := replace(v_sub_clob,'_STATUS_',i.status); 
-          v_sub_cnt := v_sub_cnt+1;                                       
+          v_sub_clob := v_sub_clob || v_temp_sub;
+          v_sub_clob := replace(v_sub_clob, '_CAT_', i.package_category_id);
+          v_sub_clob := replace(v_sub_clob, '_ID_', i.package_id);
+          v_sub_clob := replace(v_sub_clob, '_START_', i.start_date);
+          v_sub_clob := replace(v_sub_clob, '_END_', i.end_date);
+          v_sub_clob := replace(v_sub_clob, '_EXPIRED_', i.end_date);
+          v_sub_clob := replace(v_sub_clob, '_STATUS_', i.status);
+          v_sub_cnt  := v_sub_cnt + 1;
         end loop;
       end;
- 
-
-       
-       v_param := replace(v_param,'_CLIENT_ID_',v_client_id);
-       v_param := replace(v_param,'_SUBS_',v_sub_clob);
-       v_param_bsm        := replace(v_param_bsm,
-                                '_URL_',
-                                'https://acg.svc.litv.tv/acg/rpc/bsm');
-       v_param_bsm        := replace(v_param_bsm,
-                                '_POST_DATA_',v_param); 
-      utl_http.set_transfer_timeout(3);                         
-      rw_result      := link_set.link_set.post_data('http://bsm02.tw.svc.litv.tv/bsm_json_service/bsm_purchase_service.ashx',v_param_bsm);
+    
+      v_param     := replace(v_param, '_CLIENT_ID_', v_client_id);
+      v_param     := replace(v_param, '_SUBS_', v_sub_clob);
+      v_param_bsm := replace(v_param_bsm,
+                             '_URL_',
+                             'https://acg.svc.litv.tv/acg/rpc/bsm');
+      v_param_bsm := replace(v_param_bsm, '_POST_DATA_', v_param);
+      utl_http.set_transfer_timeout(3);
+      rw_result := link_set.link_set.post_data('http://bsm02.tw.svc.litv.tv/bsm_json_service/bsm_purchase_service.ashx',
+                                               v_param_bsm);
     exception
       when others then
-                null;
+        null;
     end;
-    
+  
   end;
 
 --begin

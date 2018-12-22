@@ -29,6 +29,8 @@ CREATE OR REPLACE PACKAGE "BSM_RECURRENT_UTIL" is
                                 p_cvc2           varchar2) return varchar2;
   function auto_recurrent_lipay return varchar2;
   function dup_recurrent return varchar2;
+  
+  function auto_recurrent_org return varchar2;
 
 end;
 /
@@ -50,6 +52,10 @@ CREATE OR REPLACE PACKAGE BODY "BSM_RECURRENT_UTIL" is
                       '中華帳單',
                       'TSTAR',
                       'TSTAR',
+                      'IAB',
+                      'IAB',
+                      'GOOGLEPLAY',
+                      'GOOGLEPLAY',
                       ''))
       into v_result, v_pay_type
       from bsm_client_details a,
@@ -60,7 +66,7 @@ CREATE OR REPLACE PACKAGE BODY "BSM_RECURRENT_UTIL" is
        and a.package_id = b.package_id
        and d.src_pk_no(+) = c.pk_no
        and a.status_flg = 'P'
-       and d.status_flg='P'
+       and d.status_flg = 'P'
        and (a.start_date is null or (a.end_date >= sysdate))
        and b.package_cat_id1 = p_cat
        and c.pk_no = a.src_pk_no;
@@ -69,6 +75,10 @@ CREATE OR REPLACE PACKAGE BODY "BSM_RECURRENT_UTIL" is
       return '請查詢iTunes帳號';
     elsif v_pay_type = '中華帳單' then
       return '請查詢中華電信';
+    elsif v_pay_type = 'IAB' then
+      return '請查詢GooglePlay帳號';  
+   elsif v_pay_type = 'GOOGLEPLAY' then
+      return '請查詢GooglePlay帳號'; 
     elsif v_pay_type = 'TSTAR' then
       return '依帳單日期';
     else
@@ -278,6 +288,7 @@ CREATE OR REPLACE PACKAGE BODY "BSM_RECURRENT_UTIL" is
            and trunc(get_service_end_date_full(e.package_cat_id1,
                                                b.serial_id))+1 < sysdate + 3
            and a.recurrent_type = 'CREDIT'
+           and rownum <= 50
          group by b.serial_id,
                   b.mas_no,
                   a.card_expiry,
@@ -333,7 +344,7 @@ CREATE OR REPLACE PACKAGE BODY "BSM_RECURRENT_UTIL" is
               in_bsm_purchase.card_expiry := i.card_expiry;
               in_bsm_purchase.cvc2        := i.cvc2;
               in_bsm_purchase.card_type   := i.card_type;
-              in_bsm_purchase.src_no      := 'RE' || i.purchase_id || '_' ||
+              in_bsm_purchase.src_no      := 'BE' || i.purchase_id || '_' ||
                                              to_char(sysdate, 'YYYYMMDD');
               in_bsm_purchase.serial_id   := i.serial_id;
               in_bsm_purchase.pay_type    := '信用卡';
@@ -342,8 +353,8 @@ CREATE OR REPLACE PACKAGE BODY "BSM_RECURRENT_UTIL" is
               in_bsm_purchase.details(1) := new tbsm_purchase_dtl();
               in_bsm_purchase.details(1).offer_id := i.package_id;
               in_bsm_purchase.details(1).amount := i.amount;
-              p_recurrent := 'O';
-              p_sw_version := 'RECURRENT_AUTO';
+              p_recurrent := 'R';
+              p_sw_version := 'TRANSTOLIPAY_AUTO';
             
               result := bsm_client_service.crt_purchase(in_bsm_purchase   => in_bsm_purchase,
                                                         p_recurrent       => p_recurrent,
@@ -353,7 +364,11 @@ CREATE OR REPLACE PACKAGE BODY "BSM_RECURRENT_UTIL" is
               if result.result_code = 'BSM-00000' then
                 -- recurrent 成功註記回正常
                 update bsm_recurrent_mas a
-                   set a.recurrent_status = 'N', a.recurrent_s_date = sysdate
+                   set a.recurrent_status = 'N',
+                       a.recurrent_s_date = sysdate,
+                       a.status_flg ='B',
+                       a.remark='客戶移轉'
+                       
                  where a.src_no = i.purchase_id;
                 commit;
               else
@@ -1487,6 +1502,170 @@ function cht_auto_recurrent return varchar2 is
   
     return null;
   end;
+  
+    function auto_recurrent_org return varchar2 is
+    v_result varchar2(1024);
+  begin
+    declare
+      cursor c1 is
+        Select b.serial_id,
+               b.mas_no purchase_id,
+               a.card_expiry,
+               bsm_encrypt.decrypt_Serial_ID(a.card_no,
+                                             b.serial_id || 'tgc27740083') card_no,
+               a.card_type,
+               a.cvc2,
+               c.package_id,
+               trunc(get_service_end_date_full(e.package_cat_id1,
+                                               b.serial_id)) max_end_date,
+               sum(nvl(a.amount, c.amount)) amount
+          from bsm_recurrent_mas  a,
+               bsm_purchase_mas   b,
+               bsm_purchase_item  c,
+               bsm_client_details d,
+               bsm_package_mas    e
+         where a.status_flg = 'P'
+           and b.status_flg = 'Z'
+           and d.status_flg = 'P'
+           and b.mas_no = a.src_no
+           and c.mas_pk_no = b.pk_no
+           and d.src_item_pk_no = c.pk_no
+           and e.package_id = c.package_id
+           and e.recurrent='R'
+           and trunc(get_service_end_date_full(e.package_cat_id1,
+                                               b.serial_id))+1 < sysdate + 3
+           and a.recurrent_type = 'CREDIT'
+         group by b.serial_id,
+                  b.mas_no,
+                  a.card_expiry,
+                  a.card_no,
+                  a.card_type,
+                  a.cvc2,
+                  
+                  e.package_cat_id1,
+                  c.package_id;
+      v_msg varchar2(1024);
+    begin
+      for i in c1 loop
+        dbms_output.put_line(i.serial_id);
+        -- 已服務過期註銷
+        if i.max_end_date < trunc(sysdate) - 3 then
+          dbms_output.put_line(i.serial_id || ':Expired');
+          v_msg := stop_recurrent(i.serial_id,
+                                  i.purchase_id,
+                                  '服務到期',
+                                  to_char(SYSDATE, 'YYYYMMDDHH24MISS'));
+          update bsm_recurrent_mas a 
+          set recurrent_status = 'B', a.recurrent_s_date = sysdate
+           where a.src_no = i.purchase_id;
+          commit;
+        
+        else
+        
+          -- 信用卡過期
+          if i.card_expiry < to_char(sysdate, 'yyyymm') then
+            dbms_output.put_line(i.serial_id || ':Credit Expired');
+            v_msg := stop_recurrent(i.serial_id,
+                                    i.purchase_id,
+                                    '信用卡到期');
+            update bsm_recurrent_mas a
+               set a.recurrent_status = 'B', a.recurrent_s_date = sysdate
+             where a.src_no = i.purchase_id;
+            commit;
+          
+          else
+            dbms_output.put_line(i.serial_id || ':Process');
+          
+            declare
+              -- Non-scalar parameters require additional processing
+              result            tbsm_result;
+              in_bsm_purchase   tbsm_purchase;
+              p_recurrent       varchar2(32);
+              p_device_id       varchar2(32);
+              parameter_options varchar2(32);
+              p_sw_version      varchar2(32);
+            begin
+              in_bsm_purchase             := new tbsm_purchase();
+              in_bsm_purchase.card_no     := substr(i.card_no, 1, 16);
+              in_bsm_purchase.card_expiry := i.card_expiry;
+              in_bsm_purchase.cvc2        := i.cvc2;
+              in_bsm_purchase.card_type   := i.card_type;
+              in_bsm_purchase.src_no      := 'BE' || i.purchase_id || '_' ||
+                                             to_char(sysdate, 'YYYYMMDD');
+              in_bsm_purchase.serial_id   := i.serial_id;
+              in_bsm_purchase.pay_type    := '信用卡';
+              in_bsm_purchase.details     := new tbsm_purchase_dtls();
+              in_bsm_purchase.details.extend(1);
+              in_bsm_purchase.details(1) := new tbsm_purchase_dtl();
+              in_bsm_purchase.details(1).offer_id := i.package_id;
+              in_bsm_purchase.details(1).amount := i.amount;
+              p_recurrent := 'R';
+              p_sw_version := 'TRANSTOLIPAY_AUTO';
+            
+              result := bsm_client_service.crt_purchase(in_bsm_purchase   => in_bsm_purchase,
+                                                        p_recurrent       => p_recurrent,
+                                                        p_device_id       => p_device_id,
+                                                        parameter_options => parameter_options,
+                                                        p_sw_version      => p_sw_version);
+              if result.result_code = 'BSM-00000' then
+                -- recurrent 成功註記回正常
+                update bsm_recurrent_mas a
+                   set a.recurrent_status = 'N',
+                       a.recurrent_s_date = sysdate,
+                       a.status_flg ='B',
+                       a.remark='客戶移轉'
+                       
+                 where a.src_no = i.purchase_id;
+                commit;
+              else
+                -- recurrent 失敗註記成扣款期
+                declare
+                  v_c varchar2(10);
+                begin
+                  v_c:=lpad(to_char(trunc(i.max_end_date)-trunc(sysdate)),1,'0');
+                
+                update bsm_recurrent_mas a
+                   set a.recurrent_status = 'C'||v_c, a.recurrent_s_date = sysdate,
+                   a.next_bill_date = sysdate +1
+                 where a.src_no = i.purchase_id;
+                commit;
+                end;
+              end if;
+            
+            end;
+          end if;
+        end if;
+      
+      end loop;
+    
+      for i in c1 loop
+        dbms_output.put_line(i.serial_id);
+        -- 已服務過期註銷
+       if i.max_end_date < trunc(sysdate) then
+          -- recurrent 註記成關閉
+          update bsm_recurrent_mas a
+             set a.recurrent_status = 'B', a.recurrent_s_date = sysdate
+           where a.src_no = i.purchase_id;
+          commit;
+          dbms_output.put_line(i.serial_id || ':Expired');
+          v_msg := stop_recurrent(i.serial_id,
+                                  i.purchase_id,
+                                  '服務到期',
+                                  to_char(SYSDATE, 'YYYYMMDDHH24MISS'));
+          bsm_purchase_post.refresh_bsm_client(i.serial_id);
+         elsif i.max_end_date < trunc(sysdate) + 1 then
+          -- recurrent 註記成警告期
+          update bsm_recurrent_mas a
+             set a.recurrent_status = 'A', a.recurrent_s_date = sysdate
+           where a.src_no = i.purchase_id;
+          commit;
+        end if;
+      end loop;
+    end;
+    return null;
+  end;
+
+
 
 end;
 /
