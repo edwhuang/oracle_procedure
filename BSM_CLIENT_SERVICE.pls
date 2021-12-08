@@ -22,7 +22,7 @@ create or replace PACKAGE BSM_CLIENT_SERVICE Is
   Lock_client             Exception;
   Error_Recurrent_Dup     Exception;
   Error_Recurrent_Dup_c   Exception;
-
+  --
   -- purchase
   Error_Card_no Exception;
 
