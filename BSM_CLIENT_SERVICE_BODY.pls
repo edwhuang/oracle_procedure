@@ -783,14 +783,14 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
     end if;
     Commit;
   
-    if substr(In_Client_Info.Owner_Phone, 1, 1) in
-       ('1', '2', '3', '4', '5', '6', '7', '8', '9') then
+    /* if substr(In_Client_Info.Owner_Phone,1,1) in ('1','2','3','4','5','6','7','8','9') then
       declare
         v_result tbsm_result;
-      begin
-        v_result := Activate_Client(In_Client_Info);
-      end;
+      begin 
+      v_result:=Activate_Client(In_Client_Info);
+     end;
     end if;
+    */
   
     Return v_Result;
   
@@ -850,7 +850,9 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
   End;
 
   Function Activate_Client(In_Client_Info    In Out Tbsm_Client_Info,
-                           parameter_options varchar2 default null)
+                           parameter_options varchar2 default null,
+                           p_refresh_client varchar2 default null
+                           )
     Return Tbsm_Result Is
     v_Client_Info    Tbsm_Client_Info;
     v_Result         Tbsm_Result;
@@ -860,14 +862,7 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
     v_model_info     varchar2(64);
     v_software_group varchar2(64);
     v_activate_date  date;
-    v_refresh_client varchar2(32);
   Begin
-  
-    insert into temp_activate_log
-      (event_date, result)
-    values
-      (sysdate, parameter_options);
-    commit;
     declare
       jsonobj json;
     begin
@@ -880,19 +875,12 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
           v_model_info := null;
       end;
       
-            begin
+            
+      begin
         v_software_group :=substr(json_ext.get_string(jsonobj, 'sw_version'),1,7);
       exception
         when others then
           v_software_group := null;
-      end;
-        
-    
-      begin
-        v_refresh_client := json_ext.get_string(jsonobj, 'refresh_client');
-      exception
-        when others then
-          v_refresh_client := 'R';
       end;
     exception
       when others then
@@ -1004,7 +992,7 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
                   p_model_no       varchar2,
                   p_serial_id      varchar2,
                   p_device_id      varchar2) is
-          select a.package_id, a.item_id,a.device_base,a.permanent
+        select a.package_id, a.item_id,a.device_base,nvl(a.permanent,'N') permanent,a.description
             from mfg_softwaregroup_service a
            where a.software_group = p_software_group
              and a.status_flg = 'P'
@@ -1028,7 +1016,7 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
                       and d.src_no = 'CLIENT_ACTIVATED'))
           
           union all
-          select package_id, null item_id,'D' device_base,'N' permanent
+          select package_id, null item_id,'D' device_base,'N' permanent,b.description
             from mfg_model_services b
            where p_model_no like '%' || b.model_no || '%'
              and status_flg = 'P'
@@ -1081,8 +1069,9 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
         if v_Client_Info.Status_Flg <> 'A' then
         
           --
+
           begin
-            if v_software_group is null then
+          if  v_software_group is null then            
             select software_group
               into v_software_group
               from bsm_client_device_list
@@ -1127,6 +1116,7 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
                   null;
               end;
           end;
+   
         
           for c2rec in c2(v_Client_Info.Serial_Id) loop
             declare
@@ -1238,6 +1228,7 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
             else
               v_model_no := v_model_info;
             end if;
+          
             declare
               v_dup varchar2(32);
             begin
@@ -1250,7 +1241,7 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
             
               update bsm_client_device_list a
                  set ref1 = v_model_no,
-                    a.software_group=v_software_group
+                  a.software_group=v_software_group
                where client_id = p_client_id
                  and device_id = p_device_id;
             
@@ -1262,10 +1253,12 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
                   (In_client_Info.Serial_ID,
                    In_Client_Info.Mac_Address,
                    'P',
-                   v_model_info,
-                   v_software_group);
+                   v_model_info,v_software_group);
                 commit;
             end;
+          exception
+            when no_data_found then
+              v_model_no := null;
           end;
         
           if (v_demo_flg = 'N' or v_gift = 'Y') and v_coupon_cnt = 0 then
@@ -1396,7 +1389,9 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
                        acc_name,
                        tax_code,
                        show_flg,
-                       start_type)
+                       start_type,
+                       vendor_id,
+                       promo_code)
                     Values
                       (v_mas_no,
                        v_Purchase_Pk_No,
@@ -1422,7 +1417,9 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
                        v_acc_name,
                        null,
                        'Y',
-                       'E');
+                       'E',
+                       c3rec.description,
+                       c3rec.description);
                   
                     --
                     --  計算價格
@@ -1494,40 +1491,40 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
                     
                       v_msg := bsm_purchase_post.purchase_post(p_user_no,
                                                                v_purchase_pk_no);
-                    
-                      v_msg := bsm_purchase_post.PURCHASE_COMPLETE_R(p_user_no,
-                                                                     v_purchase_pk_no,
-                                                                     v_refresh_client);
+                      if nvl(p_refresh_client,'Y')='N' then
+                                              v_msg := bsm_purchase_post.purchase_complete_r(p_user_no,
+                                                                   v_purchase_pk_no,'N');
+                      else                                       
+                                               v_msg := bsm_purchase_post.purchase_complete(p_user_no,
+                                                                   v_purchase_pk_no);
+                      end if;
                     
                       commit;
                     end;
-                    if v_model_no like '%MiTV-MSSP3%' and v_id = 'CDG001' then
+                     if v_model_no like '%MiTV-MSSP3%' and v_id = 'CDG001' then
                     
                       v_msg := bsm_sms_service.send_sms_text('8080',
-                                                             '親愛的客戶您好,恭喜您獲得已下服務頻道全餐一個月',
+                                                             '親愛的客戶您好,恭喜您獲得頻道全餐一個月',
                                                              v_Client_Info.Owner_Phone);
                     end if;
-                    if nvl(c3rec.permanent,'N') = 'P' then
+                    if c3rec.permanent = 'P' then
                       update bsm_client_details a
                       set end_date=to_date('2037/12/31','YYYY/MM/DD')
                     where a.src_pk_no=v_purchase_pk_no;
                     commit;
-                   end if;
+                    end if;
                   end;
+                  
                 
                 end if;
               end;
             end loop;
-            insert into BSM_CLIENT_CDI_LOG
-              (EVENT_TIME, CLIENT_ID, REQUIRED_DATA, RESULT_DATA)
-            values
-              (sysdate, p_client_id, null, nvl(v_refresh_client, 'R'));
-            commit;
-            if nvl(v_refresh_client, 'R') in ('Y', 'R') then
-              bsm_client_service.Set_subscription_r(null, p_client_id, 'R');
+            if nvl(p_refresh_client,'Y')='N' then
+               bsm_client_service.Set_subscription_r(null, p_client_id,'N');
             else
-              bsm_client_service.Set_subscription_r(null, p_client_id, 'N');
+               bsm_client_service.Set_subscription(null, p_client_id);
             end if;
+           
           end if;
         
         end;
@@ -1615,6 +1612,8 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
                             msgid              => v_message_handle);
             commit;
           end;
+          
+          
         
           /* v_msg := BSm_CDI_SERVICE.Set_Client_Status(v_Client_Info.Serial_Id,
           'A'); */
@@ -1629,7 +1628,7 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
     In_Client_info := v_Client_Info;
     Commit;
   
-    /*  if In_Client_Info.Mac_Address is not null then
+    if In_Client_Info.Mac_Address is not null then
       declare
         v_dup varchar2(32);
       begin
@@ -1642,12 +1641,12 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
       exception
         when no_data_found then
           insert into bsm_client_device_list
-            (client_id, device_id, status_flg,ref1)
+            (client_id, device_id, status_flg)
           values
-            (In_client_Info.Serial_ID, In_Client_Info.Mac_Address, 'P',v_model_info);
+            (In_client_Info.Serial_ID, In_Client_Info.Mac_Address, 'P');
           commit;
       end;
-    end if; */
+    end if;
   
     v_Result.Result_Message := 'message:{"subject":"","body":""}';
   
@@ -1718,7 +1717,6 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
                                                        v_sms_message,
                                                        v_Client_Info.Owner_Phone);
               end if;
-            
             exception
               when others then
                 null;
@@ -1754,11 +1752,29 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
                                                          'activate');
         end loop;
       end;
-      /*  
-      exception
-        when others then
-          null;
-        */
+      
+       declare
+            v_enqueue_options    dbms_aq.enqueue_options_t;
+            v_message_properties dbms_aq.message_properties_t;
+            v_message_handle     raw(16);
+            v_payload            purchase_msg_type;
+          begin
+            v_payload := purchase_msg_type(v_Client_Info.Serial_Id,
+                                           0,
+                                           '',
+                                           'refresh_client');
+            dbms_aq.enqueue(queue_name         => 'purchase_msg_queue',
+                            enqueue_options    => v_enqueue_options,
+                            message_properties => v_message_properties,
+                            payload            => v_payload,
+                            msgid              => v_message_handle);
+            commit;
+        end;
+    
+    exception
+      when others then
+        null;
+      
     end;
   
     v_Result.Result_Code := 'BSM-00000';
@@ -1862,10 +1878,11 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
     v_browser_type      varchar2(256);
     v_querystring       varchar2(1024);
     v_dis_amount        number(16);
-    v_dis_period        number(16);
+    v_dis_period        number(16);  
     v_package_name      varchar2(128);
     v_package_cat1      varchar2(128);
     v_price_desc        varchar2(128);
+     
   
   Begin
   
@@ -1945,25 +1962,24 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
       end;
     
       begin
-        v_user_agent := upper(json_ext.get_string(jsonobj, 'user_agent'));
+        v_user_agent := json_ext.get_string(jsonobj, 'user_agent');
       exception
         when others then
           v_user_agent := null;
       end;
     
       begin
-        v_browser_type := upper(json_ext.get_string(jsonobj, 'browser_type'));
+        v_browser_type := json_ext.get_string(jsonobj, 'browser_type');
       exception
         when others then
           v_browser_type := null;
       end;
     
       begin
-        v_querystring := upper(json_ext.get_string(jsonobj,
-                                                   'extra.querystring'));
+        v_querystring := json_ext.get_string(jsonobj, 'extra.querystring');
       exception
         when others then
-          v_browser_type := null;
+          v_querystring := null;
       end;
     
     exception
@@ -1994,6 +2010,9 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
       In_Bsm_Purchase.Pay_Type := '儲值卡';
     elsif upper(In_Bsm_Purchase.PAY_TYPE) = 'CREDIT' then
       In_Bsm_Purchase.Pay_Type := '信用卡';
+    end if;
+    if In_BSM_Purchase.SERIAL_ID='2A00FBF80A01E3D6' then
+      Raise Dup_Transfer;
     end if;
     declare
       v_serial_id varchar2(128);
@@ -2235,12 +2254,19 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
   
     v_recurrent := 'O';
     For i_Items In 1 .. In_Bsm_Purchase.Details.Count Loop
-    
       --
       --  計算價格
       --
       v_id := In_Bsm_Purchase.Details(i_Items).Offer_Id;
       Begin
+        if In_Bsm_Purchase.PAY_TYPE in ('ATM','REMIT') and  In_Bsm_Purchase.Details(i_Items).Offer_Id='XD0012'
+          then
+            In_Bsm_Purchase.Details(i_Items).Offer_Id:='XD0005';
+        end if;
+    --    if In_Bsm_Purchase.PAY_TYPE in ('信用卡','CREDIT') and  In_Bsm_Purchase.Details(i_Items).Offer_Id='XD0005'
+    --      then
+    --        In_Bsm_Purchase.Details(i_Items).Offer_Id:='XD0012';
+    --    end if;
         begin
           Select a.Charge_Amount,
                  a.Charge_Amount,
@@ -2254,9 +2280,9 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
                  a.package_cat_id1,
                  'P',
                  a.recurrent,
-                 description,
-                 package_cat1,
-                 price_des
+                 a.description,
+                 a.package_cat1,
+                 a.price_des
             Into v_Price,
                  v_org_Price,
                  v_Duration,
@@ -2303,8 +2329,6 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
         --
         declare
           v_nobuy_from date;
-          v_client_limit number(16);
-          pur_cnt number(16);
         begin
           Select b.amt,
                  a.rowid rid,
@@ -2312,16 +2336,14 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
                  b.promo_title,
                  recurrent_amt,
                  b.dis_period,
-                 a.NOBUY_FROM,
-                 a.client_limit
+                 a.nobuy_from
             into v_price,
                  v_promo_rowid,
                  v_promo_prog_id,
                  v_promo_title,
                  v_recurrent_amt,
                  v_dis_period,
-                 v_nobuy_from,
-                 v_client_limit
+                 v_nobuy_from
             from promotion_mas a, promotion_prog_item b
            where b.promo_prog_type like '%DISCOUNT%'
              and b.promo_prog_id = a.promo_prog_id
@@ -2358,13 +2380,7 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
             
               Raise Error_Package_Mas;
             end;
-            null;
-          end if;
           
-          if v_client_limit is not null then
-            select count(*) into pur_cnt from bsm_purchase_mas c where c.status_flg='Z' and c.serial_id= In_Bsm_Purchase.Serial_Id and c.promo_code=v_promo_code;
-            if pur_cnt >= v_client_limit then raise Error_Package_Mas;
-          end if;
           end if;
         exception
           when no_data_found then
@@ -2385,7 +2401,6 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
            where pk_no = v_purchase_pk_no;
         
           v_recurrent := 'R';
-        
         end if;
       
       Exception
@@ -2396,7 +2411,7 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
           Raise Error_Package_Mas;
       End;
     
-      if p_sw_version = 'RECURRENT_AUTO' and In_Bsm_Purchase.Details(i_Items)
+      if p_sw_version in ('RECURRENT_AUTO', 'TRANSTOLIPAY_AUTO', 'TRANSTO') and In_Bsm_Purchase.Details(i_Items)
         .Amount is not null then
         v_Price := In_Bsm_Purchase.Details(i_Items).Amount;
       end if;
@@ -2449,53 +2464,43 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
          v_item_type,
          v_package_name,
          v_package_cat1,
-         v_price_desc);
-    
-      if p_sw_version != 'RECURRENT_AUTO' and
-         In_Bsm_Purchase.Pay_Type = '信用卡' then
-        declare
-          v_char varchar2(1024);
-        begin
+         v_price_desc
+         );
+              if  p_sw_version != 'RECURRENT_AUTO' and In_Bsm_Purchase.Pay_Type='信用卡' then    
+      declare
+       v_char varchar2(1024);
+       begin
+     
+      Select 'x' into v_char from bsm_recurrent_mas a,bsm_purchase_item b 
+      where a.src_pk_no=b.mas_pk_no and a.status_flg='P'
+       and ((b.package_id not in ('W00012','W00013')) and (  b.package_id= In_Bsm_Purchase.Details(i_Items).Offer_Id) )
+       and a.client_id=In_Bsm_Purchase.Serial_Id;
+       update bsm_purchase_mas a set
+       a.status_flg='F'
+       where a.pk_no=v_Purchase_Pk_No;
+       commit;       
+       Raise Error_Recurrent_Dup;
         
-          Select 'x'
-            into v_char
-            from bsm_recurrent_mas a, bsm_purchase_item b
-           where a.src_pk_no = b.mas_pk_no
-             and a.status_flg = 'P'
-             and((b.package_id not in ('W00012','W000013') ) and ( b.package_id = In_Bsm_Purchase.Details(i_Items).Offer_Id))
-             and a.client_id = In_Bsm_Purchase.Serial_Id
-             and rownum<=1;
-          update bsm_purchase_mas a
-             set a.status_flg = 'F'
-           where a.pk_no = v_Purchase_Pk_No;
-          commit;
-          Raise Error_Recurrent_Dup;
-        
-        exception
-          when no_data_found then
-            if v_package_recurrent = 'R' then
-              begin
-                Select 'x'
-                  into v_char
-                  from bsm_recurrent_mas a, bsm_purchase_item b
-                 where a.src_pk_no = b.mas_pk_no
-                   and a.status_flg = 'P'
-                   and ((b.package_id = 'XD0001' and In_Bsm_Purchase.Details(i_Items)
-                       .Offer_Id not in ('XD0012','XD0008','XD0009'))
-                        or ( b.package_id= 'XD0012' and ( b.amount <> 1990 or In_Bsm_Purchase.Details(i_Items).Offer_Id not in ('XD0009')) ))
-                   and a.client_id = In_Bsm_Purchase.Serial_Id;
-                update bsm_purchase_mas a
-                   set a.status_flg = 'F'
-                 where a.pk_no = v_Purchase_Pk_No;
-                commit;
-                Raise Error_Recurrent_Dup;
-              exception
-                when no_data_found then
-                  null;
-              end;
-            end if;
-        end;
-      end if;
+       exception
+         when no_data_found then 
+           if v_package_recurrent='R' then
+             begin
+                   Select 'x' into v_char from bsm_recurrent_mas a,bsm_purchase_item b
+      where a.src_pk_no=b.mas_pk_no and a.status_flg='P'
+       and ( ( b.package_id= 'XD0001' and  In_Bsm_Purchase.Details(i_Items).Offer_Id not in ('XD0012','XD0008','XD0009'))
+       or ( b.package_id= 'XD0012' and ( b.amount <> 1990 or In_Bsm_Purchase.Details(i_Items).Offer_Id not in ('XD0009')) ))
+       and a.client_id=In_Bsm_Purchase.Serial_Id;
+       update bsm_purchase_mas a set
+       a.status_flg='F'
+       where a.pk_no=v_Purchase_Pk_No;
+       commit; 
+       Raise Error_Recurrent_Dup; 
+       exception
+         when no_data_found then null;
+         end;
+           end if;
+       end;
+        end if;
     
     End Loop;
   
@@ -2596,18 +2601,17 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
            a.promo_title   = v_promo_title
      Where Pk_No = v_Purchase_Pk_No;
     -- Pay Credit
-    /* 
+    /*
       declare
-        v_package_cat_id1 varchar2(64);
+        v_char varchar2(32);
       begin
-        select c.package_cat_id1
-          into v_package_cat_id1
-          from bsm_purchase_mas a, bsm_purchase_item b,bsm_package_mas c
-         where b.mas_pk_no = v_Purchase_Pk_No
-           and c.package_id = b.package_id
-           and c.recurrent='R'
+        select 'x'
+          into v_char
+          from bsm_purchase_mas a, bsm_purchase_item b
+         where b.package_id = 'CD0011'
+           and b.mas_pk_no = v_Purchase_Pk_No
            and a.pk_no = b.mas_pk_no
-           and (a.src_no not like 'RE%' and a.src_no not like 'BE%')
+           and (a.src_no not like 'RE%' and a.src_no not like 'BE%' )
            and rownum <= 1;
         Select 'x'
           into v_char
@@ -2615,7 +2619,7 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
          where a.src_pk_no = b.mas_pk_no
            and c.package_id = b.package_id
            and a.status_flg = 'P'
-           and package_cat_id1 = v_package_cat_id1
+           and package_cat_id1 = 'CHANNEL_A'
            and a.client_id = In_Bsm_Purchase.Serial_Id
            and rownum <= 1;
         raise Error_Recurrent_Dup_c;
@@ -2624,7 +2628,7 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
           null;
       end;
     */
-    if substr(v_Client_info.Owner_Phone, 1, 7) = '0900001' then
+    if ( substr(v_Client_info.Owner_Phone, 1, 7) = '0900001' ) or v_Client_info.Owner_Phone in ('0916252480','0901266235','0919924308')  then
       --
       -- Demo 機禁止購買
       --
@@ -2638,8 +2642,6 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
       elsif In_Bsm_Purchase.Pay_Type in ('匯款', 'ATM', '其他', 'REMIT') then
         v_Payment_result := '匯款';
       elsif In_Bsm_Purchase.Pay_Type in ('贈送', '信用卡二次扣款') then
-        v_Payment_Result := 'PRC=0';
-      elsif In_Bsm_Purchase.Pay_Type like '%二次扣款' then
         v_Payment_Result := 'PRC=0';
       elsif In_Bsm_Purchase.Pay_Type = 'APT' then
       
@@ -2740,8 +2742,7 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
       
         Commit;
       
-        if v_recurrent = 'R' /*and ( In_Bsm_Purchase.CARD_NO <> '4344117339451014' or substr(nvl(In_Bsm_Purchase.Src_No, '  '), 1, 2) = 'BE') */
-         then
+        if v_recurrent = 'R' then
           v_Payment_Result := BSM_LIPAY_GATEWAY.Accepayment(v_Purchase_Pk_No,
                                                             v_Purchase_Amount,
                                                             In_Bsm_Purchase.Card_Type,
@@ -2771,40 +2772,32 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
      Where b.pk_no = v_Purchase_Pk_No;
   
     If Instr(v_Payment_Result, 'PRC=0') > 0 Then
-      declare
-        cursor c1 is
-          select case
-                   when cal_type in ('I', 'T') then
-                    b.package_id || a.item_id
-                   else
-                    b.package_id
-                 end package_id,
-                 sysdate start_date,
-                 add_months(sysdate, b.duration_by_month) +
-                 b.duration_by_day end_date
-            from bsm_purchase_item a, bsm_package_mas b
-           where b.package_id = a.package_id
-             and a.mas_pk_no = v_Purchase_Pk_No;
-        v_msg   varchar2(1024);
-        v_tr_id varchar2(32);
+          declare
+        cursor c1 is select 
+case when cal_type in ('I','T') then
+  b.package_id||a.item_id
+  else
+    b.package_id
+end package_id,sysdate start_date,add_months(sysdate,b.duration_by_month)+b.duration_by_day end_date
+  from bsm_purchase_item a,bsm_package_mas b
+where b.package_id= a.package_id
+and a.mas_pk_no=v_Purchase_Pk_No;
+       v_msg varchar2(1024);
+       v_tr_id varchar2(32);
       begin
         for i in c1 loop
           begin
             Select Seq_Bsm_Purchase_Pk_No.Nextval Into v_tr_id From Dual;
-            v_msg := bsm_cdi_service.append_cdi_new_sub(In_Bsm_Purchase.Serial_Id,
-                                                        i.package_id,
-                                                        i.start_date,
-                                                        i.end_date,
-                                                        v_tr_id);
+          v_msg:=bsm_cdi_service.append_cdi_new_sub(In_Bsm_Purchase.Serial_Id,i.package_id,i.start_date,i.end_date,v_tr_id);
           exception
-            when others then
-              null;
+             when others then null;
           end;
         end loop;
       exception
-        when others then
-          null;
+        when others then null;
       end;
+      
+    
     
       Declare
         v_ApprovalCode Varchar2(1024);
@@ -2850,22 +2843,11 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
             into v_ordernumber
             from bsm_purchase_mas b
            where b.pk_no = v_Purchase_Pk_No;
-          /*   begin
-            select 'x'
-              into v_char
-              from bsm_purchase_item y
-             where y.mas_pk_no = v_Purchase_Pk_No
-               and package_id = 'CD0011';
-          
-            v_recurrent_type := 'CREDIT';
-          exception
-            when no_data_found then
-              null;
-          end; */
-          /*  if  In_Bsm_Purchase.CARD_NO = '4344117339451014' and 
+        
+          if In_Bsm_Purchase.CARD_NO = '4344117339451014' and
              substr(nvl(In_Bsm_Purchase.Src_No, '  '), 1, 2) != 'BE' then
-             v_recurrent_type := 'CREDIT';
-          end if; */
+            v_recurrent_type := 'CREDIT';
+          end if;
         
           if In_Bsm_Purchase.PAY_TYPE = '中華電信帳單' then
             v_recurrent_type := 'HINET';
@@ -2874,6 +2856,11 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
           if In_Bsm_Purchase.PAY_TYPE = 'IOS' then
             v_recurrent_type := 'IOS';
           end if;
+        
+          --    if v_promo_code is not null then
+        
+          --     v_recurrent_type := 'CREDIT';
+          --     end if;
         
           insert into bsm_recurrent_mas
             (pk_no,
@@ -2910,7 +2897,7 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
              0,
              v_Purchase_Pk_No,
              v_Purchase_No,
-             bsm_encrypt.Encrypt_Serial_ID(In_Bsm_Purchase.CARD_NO,
+             bsm_encrypt.Encrypt_Serial_ID(substr(In_Bsm_Purchase.CARD_NO,1,4)||'***'||substr(In_Bsm_Purchase.CARD_NO,11,4),
                                            In_Bsm_Purchase.SERIAL_ID ||
                                            'tgc27740083'),
              In_Bsm_Purchase.CARD_TYPE,
@@ -2933,63 +2920,61 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
              v_package_name,
              v_package_cat1,
              v_price_desc);
-        
           commit;
-          /*    declare
-              cursor c1(p_client_id varchar2) is
-                select t1.client_id,
-                       t4.package_cat_id1,
-                       max(t2.mas_no) last_purchase_no,
-                       count(distinct t2.mas_no)
-                  from bsm_recurrent_mas t1
-                  join bsm_purchase_mas t2
-                    on t1.src_pk_no = t2.pk_no
-                -- and t2.status_flg = 'Z'
-                  join bsm_purchase_item t3
-                    on t3.mas_pk_no = t2.pk_no
-                  join bsm_package_mas t4
-                    on t4.package_id = t3.package_id
-                 where t1.status_flg = 'P'
-                   and t1.recurrent_type in ( 'LiPayN','LiPay')
-                   and t1.client_id = p_client_id
-                 group by t1.client_id, t4.package_cat_id1
-                having count(distinct t2.mas_no) > 1;
-              cursor c2(p_client_id       varchar2,
-                        p_package_cat_id1 varchar2,
-                        p_purchase_no_x   varchar2) is
-                select t2.mas_no purchase_id
-                  from bsm_recurrent_mas t1
-                  join bsm_purchase_mas t2
-                    on t1.src_pk_no = t2.pk_no
-                --and t2.status_flg = 'Z'
-                  join bsm_purchase_item t3
-                    on t3.mas_pk_no = t2.pk_no
-                  join bsm_package_mas t4
-                    on t4.package_id = t3.package_id
-                 where t1.status_flg = 'P'
-                   and t1.recurrent_type in ( 'LiPayN','LiPay')
-                   and t1.client_id = p_client_id
-                   and t4.package_cat_id1 = p_package_cat_id1
-                   and t2.mas_no <> p_purchase_no_x;
-              v_msg varchar2(1024);
-            begin
-              for i in c1(In_Bsm_Purchase.SERIAL_ID) loop
-                dbms_output.put_line(i.client_id);
-                for j in c2(i.client_id,
-                            i.package_cat_id1,
-                            i.last_purchase_no) loop
-                  dbms_output.put_line(i.client_id || i.package_cat_id1 ||
-                                       i.last_purchase_no || j.purchase_id);
-                
-                  v_msg := bsm_recurrent_util.stop_recurrent(i.client_id,
-                                                             j.purchase_id,
-                                                             '購買其他方案');
-                end loop;
+          declare
+            cursor c1(p_client_id varchar2) is
+              select t1.client_id,
+                     t4.package_cat_id1,
+                     max(t2.mas_no) last_purchase_no,
+                     count(distinct t2.mas_no)
+                from bsm_recurrent_mas t1
+                join bsm_purchase_mas t2
+                  on t1.src_pk_no = t2.pk_no
+              -- and t2.status_flg = 'Z'
+                join bsm_purchase_item t3
+                  on t3.mas_pk_no = t2.pk_no
+                join bsm_package_mas t4
+                  on t4.package_id = t3.package_id
+               where t1.status_flg = 'P'
+                 and t1.recurrent_type in( 'LiPay', 'LiPayN')
+                 and t1.client_id = p_client_id
+               group by t1.client_id, t4.package_cat_id1
+              having count(distinct t2.mas_no) > 1;
+            cursor c2(p_client_id       varchar2,
+                      p_package_cat_id1 varchar2,
+                      p_purchase_no_x   varchar2) is
+              select t2.mas_no purchase_id
+                from bsm_recurrent_mas t1
+                join bsm_purchase_mas t2
+                  on t1.src_pk_no = t2.pk_no
+              --and t2.status_flg = 'Z'
+                join bsm_purchase_item t3
+                  on t3.mas_pk_no = t2.pk_no
+                join bsm_package_mas t4
+                  on t4.package_id = t3.package_id
+               where t1.status_flg = 'P'
+                 and t1.recurrent_type  in( 'LiPay', 'LiPayN')
+                 and t1.client_id = p_client_id
+                 and t4.package_cat_id1 = p_package_cat_id1
+                 and t2.mas_no <> p_purchase_no_x;
+            v_msg varchar2(1024);
+          begin
+            for i in c1(In_Bsm_Purchase.SERIAL_ID) loop
+              dbms_output.put_line(i.client_id);
+              for j in c2(i.client_id,
+                          i.package_cat_id1,
+                          i.last_purchase_no) loop
+                dbms_output.put_line(i.client_id || i.package_cat_id1 ||
+                                     i.last_purchase_no || j.purchase_id);
+              
+                v_msg := bsm_recurrent_util.stop_recurrent(i.client_id,
+                                                           j.purchase_id,
+                                                           '購買其他方案');
               end loop;
-            end;
-          */
+            end loop;
+          end;
+        
         end;
-      
       end if;
     
       -- 
@@ -3057,22 +3042,7 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
                  and a.serial_id is null
                  and rownum <= 1;
             
-              if i.auto_register = 'N' then
-                declare
-                  v_msg varchar2(1024);
-                begin
-                
-                  v_package_dtls   := v_package_dtls || '{"desc":"兌換券 : ' ||
-                                      v_coupon_id || '",
-                                  "client_id":"_CLIENT' ||
-                                      v_coupon_no || '_","coupon_id":"' ||
-                                      v_coupon_no || '",
-                                   "cup_dtl_pk_no":0,
-                                  "cup_package_id":[{"package_id":"' ||
-                                      v_cup_package_id || '"}]}';
-                  v_main_dtl_pk_no := v_dtl_pk_no;
-                end;
-              elsif i.auto_register = 'Y' and j = 1 then
+              if i.auto_register = 'Y' and j = 1 then
                 declare
                   v_msg varchar2(1024);
                 begin
@@ -3173,8 +3143,7 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
                  
                    else
                     c.pk_no
-                 end item_pk_no,
-                 b.promo_title
+                 end item_pk_no
             from promotion_mas       a,
                  promotion_prog_item b,
                  bsm_purchase_item   c
@@ -3204,7 +3173,7 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
            where src_item_pk_no = i.item_pk_no
              and rownum <= 1;
           update bsm_client_details d
-             set d.end_date = v_end_date, d.package_name = d.package_name
+             set d.end_date = v_end_date
            where d.src_item_pk_no = i.item_pk_no;
           update bsm_purchase_item a
              set a.service_end_date = v_end_date
@@ -3244,7 +3213,7 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
             from bsm_package_options a,
                  bsm_purchase_item   c,
                  bsm_purchase_item   d
-           where a.package_type = 'EXTEND'
+           where a.package_type like 'EXTEND'
              and (a.stk_package_id = c.package_id)
              and c.mas_pk_no = v_Purchase_Pk_No
                 
@@ -3275,9 +3244,6 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
         end loop;
         commit;
       end;
-      --
-      -- 大促後加回來
-      -- 小促還要在取消
     
       declare
         cursor c1 is
@@ -3286,7 +3252,6 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
            where a.pk_no = v_Purchase_Pk_No
              and c.mas_pk_no = a.pk_no
              and a.promo_code is null
-             and a.amount = 3588
              and not exists
            (select 'x'
                     from bsm_purchase_item d
@@ -3305,7 +3270,7 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
       declare
         next_pay date;
       begin
-        select trunc(max(a.service_end_date)) 
+        select max(a.service_end_date)
           into next_pay
           from bsm_purchase_item a
          where a.mas_pk_no = v_Purchase_Pk_No
@@ -3331,7 +3296,7 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
             from bsm_recurrent_mas  a,
                  bsm_client_details b,
                  bsm_package_mas    c
-           where a.recurrent_type in ('LiPayN', 'LiPay', 'CREDIT')
+           where a.recurrent_type in ('LiPay','LiPayN', 'CREDIT')
              and a.status_flg = 'P'
              and b.src_no = a.src_no
              and c.package_id = b.package_id
@@ -3355,7 +3320,8 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
       --
       -- Update Purchase Order Status
       --
-      Set_subscription_r(null, In_Bsm_Purchase.Serial_Id, 'N');
+      Set_subscription(null, In_Bsm_Purchase.Serial_Id);
+      commit;
       declare
         v_enqueue_options    dbms_aq.enqueue_options_t;
         v_message_properties dbms_aq.message_properties_t;
@@ -3373,7 +3339,8 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
                         msgid              => v_message_handle);
         commit;
       end;
-       declare
+      
+      declare
         v_enqueue_options    dbms_aq.enqueue_options_t;
         v_message_properties dbms_aq.message_properties_t;
         v_message_handle     raw(16);
@@ -3432,7 +3399,6 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
                                                             '東森購物折扣金通知簡訊，請撥打專屬訂購專線0800-070-886，訂購時說出：LiTV獨享折100，即可使用（共7筆，不限金額折抵）',
                                                             v_Client_Info.Owner_Phone);
             end if;
-          
           end if;
         End If;
       exception
@@ -3560,6 +3526,30 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
                             end
        where a.rowid = v_promo_rowid;
       commit;
+      -- 小促移除加贈六個月 
+      /*   declare
+        cursor c1 is
+          Select 'x'
+            from bsm_purchase_mas a, bsm_purchase_item c
+           where a.pk_no = v_Purchase_Pk_No
+             and a.amount = 3588
+             and c.mas_pk_no = a.pk_no
+             and a.promo_code is null
+             and not exists
+           (select 'x'
+                    from bsm_purchase_item d
+                   where d.mas_pk_no = a.pk_no
+                     and d.package_id not in ('XD0005', 'E_XDG005'));
+      begin
+        for i in c1 loop
+          update bsm_client_details d
+             set d.end_date     = add_months(d.start_date, 18),
+                 d.package_name = '預付一年加贈6個月'
+           where d.src_pk_no = v_Purchase_Pk_No
+             and package_id = 'XD0005';
+        end loop;
+      end;
+      */
     
       declare
         v_enqueue_options    dbms_aq.enqueue_options_t;
@@ -3598,6 +3588,7 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
           commit;
         end;
       
+        --  null;
       end if;
     Elsif (In_Bsm_Purchase.Pay_Type in
           ('匯款', 'ATM', '其他', 'REMIT', '中華電信ATM') and
@@ -3614,25 +3605,43 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
       Raise Error_Payment;
     
     End If;
-  
-    declare
-      v_enqueue_options    dbms_aq.enqueue_options_t;
-      v_message_properties dbms_aq.message_properties_t;
-      v_message_handle     raw(16);
-      v_payload            purchase_msg_type;
-    begin
-      v_payload := purchase_msg_type(In_BSM_Purchase.SERIAL_ID,
-                                     v_Purchase_Pk_No,
-                                     v_Purchase_No,
-                                     'refresh_bsm');
-      dbms_aq.enqueue(queue_name         => 'purchase_msg_queue',
-                      enqueue_options    => v_enqueue_options,
-                      message_properties => v_message_properties,
-                      payload            => v_payload,
-                      msgid              => v_message_handle);
-      commit;
-    end;
-  
+          declare
+        v_enqueue_options    dbms_aq.enqueue_options_t;
+        v_message_properties dbms_aq.message_properties_t;
+        v_message_handle     raw(16);
+        v_payload            purchase_msg_type;
+      begin
+        v_payload := purchase_msg_type(In_BSM_Purchase.SERIAL_ID,
+                                       v_Purchase_Pk_No,
+                                       v_Purchase_No,
+                                       'refresh_cdi');
+        dbms_aq.enqueue(queue_name         => 'purchase_msg_queue',
+                        enqueue_options    => v_enqueue_options,
+                        message_properties => v_message_properties,
+                        payload            => v_payload,
+                        msgid              => v_message_handle);
+        commit;
+      end;
+    
+    /* error
+      declare
+        v_enqueue_options    dbms_aq.enqueue_options_t;
+        v_message_properties dbms_aq.message_properties_t;
+        v_message_handle     raw(16);
+        v_payload            purchase_msg_type;
+      begin
+        v_payload := purchase_msg_type(In_BSM_Purchase.SERIAL_ID,
+                                       v_Purchase_Pk_No,
+                                       v_Purchase_No,
+                                       'refresh_bsm');
+        dbms_aq.enqueue(queue_name         => 'purchase_msg_queue',
+                        enqueue_options    => v_enqueue_options,
+                        message_properties => v_message_properties,
+                        payload            => v_payload,
+                        msgid              => v_message_handle);
+        commit;
+      end;
+    */
     Return v_Result;
   exception
     When Status_Exception Then
@@ -3904,14 +3913,14 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
          v_Result.Result_Code || ' ' || v_Result.Result_Message);
       commit;
       Return v_Result;
-  /*  When others Then
+    When others Then
       v_Result.Result_Code    := 'BSM-00418';
       v_Result.Result_Message := SQLERRM;
     
-      /* 狀態改為失敗
-      update bsm_purchase_mas
-         set status_flg = 'F'
-       where pk_no = v_Purchase_Pk_No;
+      /* 狀態改為失敗 */
+      /*  update bsm_purchase_mas
+        set status_flg = 'F'
+      where pk_no = v_Purchase_Pk_No; */
     
       insert into bsm_purchase_log
         (mas_pk_no, event_date, event_type, event_log)
@@ -3922,7 +3931,7 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
          v_Result.Result_Code || ' ' || v_Result.Result_Message);
       commit;
       Return v_Result;
-    */
+    
   End;
 
   Function Get_Content_List(p_Start Number, p_End Number)
@@ -4520,6 +4529,7 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
     end;
     Return v_purchase;
   End;
+
   Procedure Set_subscription(p_pk_no Number, p_client_id varchar2) is
   begin
     Set_subscription_r(p_pk_no, p_client_id, 'R');
@@ -4537,8 +4547,6 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
              status_flg,
              regexp_substr(device_id, '[^_]+', 1, 1) device_id,
              package_id acl_id,
-             free_start free_start_date,
-             free_end free_end_date,
              extend_days
         From bsm_client_details
        Where (src_pk_no = p_pk_no or p_pk_no is null)
@@ -4569,31 +4577,30 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
       -- check bsm_package_mas setting 
       --
       begin
-        select a.cal_type, a.acl_duration, a.ext_days, a.acl_id
-          into v_package_type, v_acl_duration, v_ext_days, v_acl_package_id
+        select a.cal_type, a.acl_duration, a.ext_days,acl_id
+          into v_package_type, v_acl_duration, v_ext_days,v_acl_package_id
           from bsm_package_mas a
          where package_id = i.package_id;
       
         if v_package_type = 'T' then
           v_acl_package_id := i.item_id;
-          --  else
-          --    v_acl_package_id := i.acl_id;
-        end if;
-      
-        if i.extend_days is not null then
-          v_ext_days := i.extend_days;
-        else
-          update bsm_client_details dtl
-             set extend_days = v_ext_days
-           where dtl.pk_no = i.pk_no;
-        
-          commit;
+      --  else
+      --    v_acl_package_id := i.acl_id;
         end if;
       
       exception
         when no_data_found then
           v_acl_package_id := i.acl_id;
       end;
+      if i.extend_days is not null then
+        v_ext_days := i.extend_days;
+      else
+        update bsm_client_details dtl
+           set extend_days = v_ext_days
+         where dtl.pk_no = i.pk_no;
+      
+        commit;
+      end if;
     
       if i.end_date is null or v_package_type = 'T' then
         v_created := i.start_date;
@@ -4615,14 +4622,61 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
            trunc(sysdate) then
           v_delete_flg := 'Y';
         end if;
-        if v_delete_flg = 'Y' or i.STATUS_FLG <> 'P' then
-          delete acl.subscription
-           where "transaction_id" = to_char(i.pk_no);
-        else
+      
+        -- 直接Isert
+        begin
+          if length(p_client_id) = 12 or instr(i.device_id, '_') > 0 or
+             instr(i.device_id, '-') > 0 or instr(i.device_id, '.') > 0 or
+             length(i.device_id) <> 12 then
+            v_device_id := null;
+          else
+            v_device_id := i.device_id;
+          end if;
+          dbms_output.put_line('acl:' || v_acl_package_id);
+          if v_acl_package_id is not null then
+            Insert Into acl.subscription
+              ("transaction_id",
+               "client_id",
+               "device_id",
+               "package_id",
+               "start_time",
+               "created",
+               "last_modified",
+               "deleted",
+               "service_start_time",
+               "service_end_time")
+            Values
+              (to_char(i.pk_no),
+               p_client_id,
+               v_device_id,
+               v_acl_package_id,
+               i.start_date,
+               v_created,
+               Sysdate,
+               decode(v_delete_flg, 'Y', 1, decode(i.STATUS_FLG, 'P', 0, 1)),
+               i.start_date,
+               i.end_date + v_ext_days);
+          end if;
+        
+        end;
+      exception
+        when DUP_VAL_ON_INDEX then
           begin
           
-            -- 直接Isert
-            begin
+            select 'x'
+              into v_char
+              from acl.subscription
+             where "transaction_id" = to_char(i.pk_no);
+            --  and "client_id" = p_client_id;
+          
+            update acl.subscription
+               set "deleted" = decode(v_delete_flg,
+                                      'Y',
+                                      1,
+                                      decode(i.STATUS_FLG, 'P', 0, 1))
+             where "transaction_id" = to_char(i.pk_no);
+          
+            if v_acl_package_id is not null then
               if length(p_client_id) = 12 or instr(i.device_id, '_') > 0 or
                  instr(i.device_id, '-') > 0 or instr(i.device_id, '.') > 0 or
                  length(i.device_id) <> 12 then
@@ -4630,141 +4684,81 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
               else
                 v_device_id := i.device_id;
               end if;
-              dbms_output.put_line('acl:' || v_acl_package_id);
-              if v_acl_package_id is not null then
-                Insert Into acl.subscription
-                  ("transaction_id",
-                   "client_id",
-                   "device_id",
-                   "package_id",
-                   "start_time",
-                   "created",
-                   "last_modified",
-                   "deleted",
-                   "service_start_time",
-                   "service_end_time",
-                   "free_start_time",
-                   "free_end_time")
-                Values
-                  (to_char(i.pk_no),
-                   p_client_id,
-                   v_device_id,
-                   v_acl_package_id,
-                   i.start_date,
-                   v_created,
-                   Sysdate,
-                   decode(v_delete_flg,
-                          'Y',
-                          1,
-                          decode(i.STATUS_FLG, 'P', 0, 1)),
-                   i.start_date,
-                   i.end_date + v_ext_days,
-                   i.free_start_date,
-                   i.free_end_date);
-              end if;
-            
-            end;
+              update acl.subscription
+                 set "package_id" = v_acl_package_id,
+                     "start_time" = i.start_date,
+                     "created"    = v_created,
+                     "deleted"    = decode(v_delete_flg,
+                                           'Y',
+                                           1,
+                                           decode(i.STATUS_FLG, 'P', 0, 1)),
+                     -- "client_id"  = p_client_id,
+                     "device_id"          = v_device_id,
+                     "service_start_time" = i.start_date,
+                     "service_end_time"   = i.end_date + v_ext_days
+               where "transaction_id" = to_char(i.pk_no);
+            end if;
+          
           exception
-            when DUP_VAL_ON_INDEX then
+            when no_data_found then
               begin
-                select 'x'
-                  into v_char
-                  from acl.subscription
-                 where "transaction_id" = to_char(i.pk_no);
-                --  and "client_id" = p_client_id;
-              
-                update acl.subscription
-                   set "deleted" = decode(v_delete_flg,
-                                          'Y',
-                                          1,
-                                          decode(i.STATUS_FLG, 'P', 0, 1))
-                 where "transaction_id" = to_char(i.pk_no);
-              
+                if length(p_client_id) = 12 or instr(i.device_id, '_') > 0 or
+                   instr(i.device_id, '-') > 0 or
+                   instr(i.device_id, '.') > 0 or length(i.device_id) <> 12 then
+                  v_device_id := null;
+                else
+                  v_device_id := i.device_id;
+                end if;
+                dbms_output.put_line('acl:' || v_acl_package_id);
                 if v_acl_package_id is not null then
-                  if length(p_client_id) = 12 or
-                     instr(i.device_id, '_') > 0 or
-                     instr(i.device_id, '-') > 0 or
-                     instr(i.device_id, '.') > 0 or
-                     length(i.device_id) <> 12 then
-                    v_device_id := null;
-                  else
-                    v_device_id := i.device_id;
-                  end if;
-                  update acl.subscription
-                     set "package_id" = v_acl_package_id,
-                         "start_time" = i.start_date,
-                         "created"    = v_created,
-                         "deleted"    = decode(v_delete_flg,
-                                               'Y',
-                                               1,
-                                               decode(i.STATUS_FLG, 'P', 0, 1)),
-                         -- "client_id"  = p_client_id,
-                         "device_id"          = v_device_id,
-                         "service_start_time" = i.start_date,
-                         "service_end_time"   = i.end_date + v_ext_days,
-                         "free_start_time"    = i.free_start_date,
-                         "free_end_time"      = i.free_end_date
-                   where "transaction_id" = to_char(i.pk_no);
+                  Insert Into acl.subscription
+                    ("transaction_id",
+                     "client_id",
+                     "device_id",
+                     "package_id",
+                     "start_time",
+                     "created",
+                     "last_modified",
+                     "deleted",
+                     "service_start_time",
+                     "service_end_time")
+                  Values
+                    (to_char(i.pk_no),
+                     p_client_id,
+                     v_device_id,
+                     v_acl_package_id,
+                     i.start_date,
+                     v_created,
+                     Sysdate,
+                     decode(v_delete_flg,
+                            'Y',
+                            1,
+                            decode(i.STATUS_FLG, 'P', 0, 1)),
+                     i.start_date,
+                     i.end_date + v_ext_days);
                 end if;
               
-              exception
-                when no_data_found then
-                  begin
-                    if length(p_client_id) = 12 or
-                       instr(i.device_id, '_') > 0 or
-                       instr(i.device_id, '-') > 0 or
-                       instr(i.device_id, '.') > 0 or
-                       length(i.device_id) <> 12 then
-                      v_device_id := null;
-                    else
-                      v_device_id := i.device_id;
-                    end if;
-                    dbms_output.put_line('acl:' || v_acl_package_id);
-                    if v_acl_package_id is not null then
-                      Insert Into acl.subscription
-                        ("transaction_id",
-                         "client_id",
-                         "device_id",
-                         "package_id",
-                         "start_time",
-                         "created",
-                         "last_modified",
-                         "deleted",
-                         "service_start_time",
-                         "service_end_time")
-                      Values
-                        (to_char(i.pk_no),
-                         p_client_id,
-                         v_device_id,
-                         v_acl_package_id,
-                         i.start_date,
-                         v_created,
-                         Sysdate,
-                         decode(v_delete_flg,
-                                'Y',
-                                1,
-                                decode(i.STATUS_FLG, 'P', 0, 1)),
-                         i.start_date,
-                         i.end_date + v_ext_days);
-                    end if;
-                  
-                  end;
               end;
-            
           end;
-        end if;
-      
+        
       end;
     
     End Loop;
   
     for c2rec in c2 loop
-      delete acl.subscription a
-      --   set "deleted" = 1
+      update acl.subscription a
+         set "deleted" = 1
        where "transaction_id" = c2rec."transaction_id";
     end loop;
   
     commit;
+  
+    /*   declare
+      v_msg varchar2(1024);
+    begin
+      v_msg := bsm_cdi_service.refresh_client(p_client_id);
+    end;
+    */
     if refresh_client = 'R' then
       declare
         v_enqueue_options    dbms_aq.enqueue_options_t;
@@ -4797,6 +4791,7 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
         commit;
       end;
     end if;
+  
   End;
 
   Function UnActivate_client(p_user_no number, p_Serial_id varchar2)
@@ -5306,10 +5301,35 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
       v_param        := replace(v_param, '_CLIENT_ID_', v_client_id);
       v_param        := replace(v_param, '_PROMO_CODE_', v_promo_code);
       v_param_length := length(v_param);
-      rw_result      := link_set.link_set.post_bsm(v_param);
+      Req            := Utl_Http.Begin_Request(link_set.link_set.p_bsm_json_url ||
+                                               '/bsm_purchase_service.ashx',
+                                               'POST',
+                                               'HTTP/1.1');
+    
+      UTL_HTTP.SET_HEADER(r     => req,
+                          name  => 'Content-Type',
+                          value => 'application/json');
+      UTL_HTTP.SET_HEADER(r     => req,
+                          name  => 'Content-Length',
+                          value => v_param_length);
+      UTL_HTTP.WRITE_TEXT(r => req, data => v_param);
+    
+      resp := utl_http.get_response(req);
+    
+      loop
+        begin
+          rw := null;
+          utl_http.read_line(resp, rw, TRUE);
+          rw_result := rw_result || rw;
+        exception
+          when others then
+            exit;
+        end;
+      end loop;
+      utl_http.end_response(resp);
     exception
       when others then
-        null;
+        utl_http.end_response(resp);
       
     end;
   end;
@@ -5365,18 +5385,10 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
                              '_URL_',
                              link_set.link_set.p_acg_url);
       v_param_bsm := replace(v_param_bsm, '_POST_DATA_', v_param);
-    
+      utl_http.set_transfer_timeout(3);
       rw_result := link_set.link_set.post_data(link_set.link_set.p_bsm_json_url ||
                                                '/bsm_purchase_service.ashx',
                                                v_param_bsm);
-      -- insert into temp_data (p_date, dat) values (sysdate, rw_result);
-      commit;
-      /* exception
-           when others then 
-             null;
-      */ /*  insert into temp_data (p_date, dat) values (sysdate, 'ERROR');
-                                        commit; */
-      --  utl_http.end_response(resp);
     exception
       when others then
         null;
