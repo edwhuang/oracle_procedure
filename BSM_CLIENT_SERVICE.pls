@@ -3,7 +3,6 @@ create or replace PACKAGE BSM_CLIENT_SERVICE Is
   -- Author  : EDWARD.HUANG
   -- Created : 2010/6/30 下午 03:15:02
   -- Purpose :
- aaa
   -- Public type declarations
   -- type <TypeName> is <Datatype>;
   Failure_Get_Client_Info Exception; --找不到Client Info 的資料
