@@ -2823,6 +2823,24 @@ and a.mas_pk_no=v_Purchase_Pk_No;
         when others then
           null;
       End;
+      --
+      -- XD0016 + PRO011 -> XD0005
+      --
+      declare
+       v_char varchar2(32);
+      begin
+        select 'x'  into  v_char from bsm_purchase_item
+              where mas_pk_no =v_Purchase_Pk_No and package_id='XD0016' and exists 
+        (select 'x' from bsm_purchase_item d where d.mas_pk_no =v_Purchase_Pk_No and package_id='PRO11') and rownum<=1;
+        v_recurrent:='O';
+       update bsm_purchase_item
+       set package_id='XD0005'
+        where mas_pk_no =v_Purchase_Pk_No and package_id='XD0016' and exists 
+        (select 'x' from bsm_purchase_item d where d.mas_pk_no =v_Purchase_Pk_No and package_id='PRO11');
+        commit;
+      exception
+         when no_data_found then null;
+       end;
     
       if v_recurrent = 'R' then
         declare
@@ -2856,6 +2874,9 @@ and a.mas_pk_no=v_Purchase_Pk_No;
           if In_Bsm_Purchase.PAY_TYPE = 'IOS' then
             v_recurrent_type := 'IOS';
           end if;
+          
+
+    
         
           --    if v_promo_code is not null then
         
@@ -2976,6 +2997,7 @@ and a.mas_pk_no=v_Purchase_Pk_No;
         
         end;
       end if;
+  
     
       -- 
       -- Call ACL
@@ -3224,6 +3246,12 @@ and a.mas_pk_no=v_Purchase_Pk_No;
       
         v_end_date date;
       begin
+        --
+        -- §R°£XD0016 ªºE_XDG005 ÃØ°e
+        -- 
+        delete bsm_purchase_item where mas_pk_no =v_Purchase_Pk_No and package_id='E_XDG005' and exists 
+        (select 'x' from bsm_purchase_item d where d.mas_pk_no =v_Purchase_Pk_No and package_id='XD0016');
+        commit;
         for i in c1 loop
           select max(add_months(a.end_date, i.extend_months) +
                      i.extend_days)
