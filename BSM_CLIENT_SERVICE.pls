@@ -3,6 +3,7 @@ create or replace PACKAGE BSM_CLIENT_SERVICE Is
   -- Author  : EDWARD.HUANG
   -- Created : 2010/6/30 下午 03:15:02
   -- Purpose :
+
   -- Public type declarations
   -- type <TypeName> is <Datatype>;
   Failure_Get_Client_Info Exception; --找不到Client Info 的資料
@@ -22,7 +23,7 @@ create or replace PACKAGE BSM_CLIENT_SERVICE Is
   Lock_client             Exception;
   Error_Recurrent_Dup     Exception;
   Error_Recurrent_Dup_c   Exception;
-  --
+
   -- purchase
   Error_Card_no Exception;
 
@@ -64,7 +65,8 @@ create or replace PACKAGE BSM_CLIENT_SERVICE Is
     Return Tcms_Contentlist;
   Function Get_Content(p_Content_id String) Return tcms_content;
   Function Activate_Client(In_Client_Info    In Out Tbsm_Client_Info,
-                           parameter_options varchar2 default null)
+                           parameter_options varchar2 default null,
+                            p_refresh_client varchar2 default null)
     Return Tbsm_Result;
   Function Get_Purchase(p_purchase_id String) Return tbsm_purchase;
   Procedure Set_subscription(p_pk_no Number, p_client_id varchar2);
@@ -92,7 +94,6 @@ create or replace PACKAGE BSM_CLIENT_SERVICE Is
                           p_default_val clob) return clob;
   procedure refresh_bsm_client(v_client_id   varchar2,
                                refresh_quene varchar2 default null);
-
   procedure refresh_acg(v_client_id varchar2, v_promo_code varchar2);
   procedure saveClientServiceInfo(v_client_id varchar2);
 
