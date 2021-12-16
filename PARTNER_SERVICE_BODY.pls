@@ -944,7 +944,7 @@ create or replace PACKAGE BODY PARTNER_SERVICE is
       end;
       declare
         cursor c1 is
-          select a.mas_no, pk_no
+          select a.mas_no, pk_no,a.mas_date
             from bsm_purchase_mas a
            where replace(replace(a.src_no, 'so-net', 'sonet'),
                          'GOOGLE',
@@ -991,6 +991,14 @@ create or replace PACKAGE BODY PARTNER_SERVICE is
           values
             (v_Purchase_Pk_No, 'cancelservice', sysdate);
           bsm_client_service.Set_subscription(null, v_client_id);
+          
+          -- 七日內取消訂單
+          if i.mas_date >= sysdate -7 then
+            update bsm_purchase_mas
+            set status_flg='C'
+            where pk_no=v_Purchase_Pk_No;
+            commit;
+          end if;
         
           begin
             update bsm_purchase_mas c
