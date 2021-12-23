@@ -2485,10 +2485,11 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
          when no_data_found then 
            if v_package_recurrent='R' then
              begin
-                   Select 'x' into v_char from bsm_recurrent_mas a,bsm_purchase_item b
+                   Select 'x' into v_char from bsm_recurrent_mas a,bsm_purchase_item b,bsm_package_mas c
       where a.src_pk_no=b.mas_pk_no and a.status_flg='P'
-       and ( ( b.package_id= 'XD0001' and  In_Bsm_Purchase.Details(i_Items).Offer_Id not in ('XD0012','XD0008','XD0009'))
+       and ( ( b.package_id= 'XD0001' and  In_Bsm_Purchase.Details(i_Items).Offer_Id not in ('XD0016','XD0012','XD0008','XD0009'))
        or ( b.package_id= 'XD0012' and ( b.amount <> 1990 or In_Bsm_Purchase.Details(i_Items).Offer_Id not in ('XD0009')) ))
+       and c.package_id=In_Bsm_Purchase.Details(i_Items).Offer_Id
        and a.client_id=In_Bsm_Purchase.Serial_Id;
        update bsm_purchase_mas a set
        a.status_flg='F'
