@@ -1,0 +1,37 @@
+﻿CREATE OR REPLACE TYPE IPTV."TCMS_CONTENT"                                          As Object
+(   content_id Varchar2(32),
+     items TCMS_itemList,
+    disp_items tcms_detaillist,
+    demo_items tcms_detaillist,
+      TITLE          VARCHAR2(1024),
+  REF1           VARCHAR2(1024),
+  REF2           VARCHAR2(1024),
+  REF3           VARCHAR2(1024),
+  REF4           VARCHAR2(1024),
+  REF5           VARCHAR2(1024),
+  REF6           VARCHAR2(1024),
+  REF7           VARCHAR2(1024),
+  REF8           VARCHAR2(1024),
+  ENG_TITLE      VARCHAR2(1024),
+  SHORT_TITLE    VARCHAR2(256),
+  SYNOPSIS       VARCHAR2(2048),
+  STARRING       VARCHAR2(1024),
+  ACTORS         VARCHAR2(1024),
+  DIRECTED       VARCHAR2(1024),
+  GENRE          VARCHAR2(1024),
+  RUNTIME        VARCHAR2(1024),
+  RELEASE_YEAR   VARCHAR2(1024),
+  STUDIO         VARCHAR2(1024),
+  RATING         VARCHAR2(1024),
+  OFF_SHELF_DATE VARCHAR2(256),
+  MAIN_PICTURE   VARCHAR2(256),
+  PICTURES       VARCHAR2(2048),
+  SCORE          VARCHAR2(32),
+  PRICE          VARCHAR2(32),
+  SDHD           VARCHAR2(32),
+  EPISODE        VARCHAR2(32),
+ CONSTRUCTOR FUNCTION  TCMS_content
+    RETURN SELF AS Result
+)
+/
+

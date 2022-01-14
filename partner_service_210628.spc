@@ -1,6 +1,4 @@
-
-
-create or replace PACKAGE PARTNER_SERVICE is
+﻿CREATE OR REPLACE PACKAGE IPTV.PARTNER_SERVICE_210628 is
   lost_data       exception;
   order_not_found exception;
   no_client_found exception;
@@ -8,4 +6,6 @@ create or replace PACKAGE PARTNER_SERVICE is
   function PARTNER_ORDER_SERVICE(p_order             varchaR2,
                                  p_start_form_active varchar2 default null)
     return varchar2;
-END PARTNER_SERVICE;
+END PARTNER_SERVICE_210628;
+/
+

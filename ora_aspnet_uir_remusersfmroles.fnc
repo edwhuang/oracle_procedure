@@ -1,0 +1,194 @@
+﻿CREATE OR REPLACE FUNCTION IPTV."ORA_ASPNET_UIR_REMUSERSFMROLES" wrapped
+0
+abcd
+abcd
+abcd
+abcd
+abcd
+abcd
+abcd
+abcd
+abcd
+abcd
+abcd
+abcd
+abcd
+abcd
+abcd
+3
+8
+9200000
+1
+4
+0
+2e
+2 :e:
+1FUNCTION:
+1ORA_ASPNET_UIR_REMUSERSFMROLES:
+1APPLICATIONNAME_:
+1NVARCHAR2:
+1USERNAMES_:
+1ORA_ASPNET_ROLES_PKG:
+1ASSOCARRAYVARCHAR2_T:
+1USERNAMES_ARR_SIZE:
+1INTEGER:
+1ROLENAMES_:
+1ROLENAMES_ARR_SIZE:
+1USERNAME:
+1OUT:
+1ROLENAME:
+1RETURN:
+1OUTRESULT:
+1M_APPID:
+1RAW:
+116:
+1M_ROWCNT:
+10:
+1M_USERID:
+1M_ROLEID:
+1M_ROWSCHG:
+1APPLICATIONID:
+1ORA_ASPNET_APPLICATIONS:
+1LOWER:
+1LOWEREDAPPLICATIONNAME:
+1=:
+1NO_DATA_FOUND:
+1ROLE_NOT_FOUND:
+1I:
+11:
+1LOOP:
+1ROLEID:
+1ORA_ASPNET_ROLES:
+1LOWEREDROLENAME:
+1USERID:
+1ORA_ASPNET_USERS:
+1LOWEREDUSERNAME:
+1THIS_USER_NOT_FOUND:
+1J:
+1K:
+1COUNT:
+1ORA_ASPNET_USERSINROLES:
+1THIS_USER_ALREADY_NOT_IN_ROLE:
+0
+
+0
+0
+1ed
+2
+0 a0 8d 8f a0 b0 3d 8f
+:2 a0 6b b0 3d 8f a0 b0 3d
+8f :2 a0 6b b0 3d 8f a0 b0
+3d 96 :2 a0 b0 54 96 :2 a0 b0
+54 b4 :2 a0 2c 6a a3 a0 1c
+81 b0 a3 a0 51 a5 1c 4d
+81 b0 a3 a0 1c 51 81 b0
+a3 a0 51 a5 1c 4d 81 b0
+a3 a0 51 a5 1c 4d 81 b0
+a3 a0 1c 51 81 b0 a0 ac
+:2 a0 b2 ee :2 a0 a5 b a0 7e
+b4 2e ac e5 d0 b2 e9 b7
+:4 a0 6b 65 b7 a6 9 a4 b1
+11 4f 91 51 :2 a0 63 37 a0
+51 d a0 ac :2 a0 b2 ee :3 a0
+a5 b a5 b a0 7e b4 2e
+:2 a0 7e b4 2e a 10 ac e5
+d0 b2 e9 b7 :4 a0 a5 b d
+:3 a0 6b 65 b7 a6 9 a4 b1
+11 4f b7 a0 47 91 51 :2 a0
+63 37 a0 ac :2 a0 b2 ee :2 a0
+7e :2 a0 a5 b a5 b b4 2e
+:2 a0 7e b4 2e a 10 ac e5
+d0 b2 e9 b7 :4 a0 a5 b d
+:3 a0 6b 65 b7 a6 9 a4 b1
+11 4f b7 a0 47 a0 51 d
+a0 4d d a0 4d d 91 51
+:2 a0 63 37 a0 ac :2 a0 b2 ee
+:2 a0 7e :2 a0 a5 b a5 b b4
+2e :2 a0 7e b4 2e a 10 ac
+e5 d0 b2 e9 91 51 :2 a0 63
+37 a0 ac :2 a0 b2 ee :3 a0 a5
+b a5 b a0 7e b4 2e :2 a0
+7e b4 2e a 10 ac e5 d0
+b2 e9 a0 d2 9f ac :2 a0 b2
+ee :2 a0 7e b4 2e :2 a0 7e b4
+2e a 10 ac e5 d0 b2 e9
+b7 a0 4f b7 a6 9 a4 b1
+11 4f a0 7e 51 b4 2e 5a
+:3 a0 a5 b d :3 a0 a5 b d
+:3 a0 6b 65 b7 19 3c b7 a0
+47 b7 a0 47 a0 4d d a0
+4d d a0 51 d 91 51 :2 a0
+63 37 a0 ac :2 a0 b2 ee :2 a0
+7e :2 a0 a5 b a5 b b4 2e
+:2 a0 7e b4 2e a 10 ac e5
+d0 b2 e9 91 51 :2 a0 63 37
+a0 ac :2 a0 b2 ee :3 a0 a5 b
+a5 b a0 7e b4 2e :2 a0 7e
+b4 2e a 10 ac e5 d0 b2
+e9 :3 a0 7e b4 2e :2 a0 7e b4
+2e a 10 cd e9 b7 a0 47
+b7 a0 47 a0 51 65 b7 a4
+b1 11 68 4f 1d 17 b5
+1ed
+2
+0 3 7 23 1f 1e 2b 3c
+34 38 1b 33 44 51 4d 30
+59 69 5e 62 66 4c 71 7e
+7a 49 86 93 8b 8f 79 9a
+ab a3 a7 76 b2 a2 b7 bb
+bf c3 dc cb cf d7 9f f9
+e3 e7 ea eb f3 f4 ca 115
+104 108 c7 110 103 133 120 100
+124 125 12d 12e 11f 151 13e 11c
+142 143 14b 14c 13d 16d 15c 160
+13a 168 15b 174 158 178 17c 180
+181 188 18c 190 191 193 197 19a
+19b 1a0 1a1 1a7 1ab 1ac 1b1 1b3
+1b7 1bb 1bf 1c3 1c6 1ca 1cc 1cd
+1d2 1d6 1d8 1e4 1e6 1ea 1ed 1f1
+1f5 1f9 1fb 1ff 202 206 20a 20b
+20f 213 214 21b 21f 223 227 228
+22a 22b 22d 231 234 235 23a 23e
+242 245 246 1 24b 250 251 257
+25b 25c 261 263 267 26b 26f 273
+274 276 27a 27e 282 286 289 28d
+28f 290 295 299 29b 2a7 2a9 2ab
+2af 2b6 2ba 2bd 2c1 2c5 2c9 2cb
+2cf 2d0 2d4 2d8 2d9 2e0 2e4 2e8
+2eb 2ef 2f3 2f4 2f6 2f7 2f9 2fa
+2ff 303 307 30a 30b 1 310 315
+316 31c 320 321 326 328 32c 330
+334 338 339 33b 33f 343 347 34b
+34e 352 354 355 35a 35e 360 36c
+36e 370 374 37b 37f 382 386 38a
+38b 38f 393 394 398 39c 39f 3a3
+3a7 3ab 3ad 3b1 3b2 3b6 3ba 3bb
+3c2 3c6 3ca 3cd 3d1 3d5 3d6 3d8
+3d9 3db 3dc 3e1 3e5 3e9 3ec 3ed
+1 3f2 3f7 3f8 3fe 402 403 408
+40c 40f 413 417 41b 41d 421 422
+426 42a 42b 432 436 43a 43e 43f
+441 442 444 448 44b 44c 451 455
+459 45c 45d 1 462 467 468 46e
+472 473 478 47c 480 483 484 488
+48c 48d 494 498 49c 49f 4a0 4a5
+4a9 4ad 4b0 4b1 1 4b6 4bb 4bc
+4c2 4c6 4c7 4cc 4ce 4d2 4d4 4d6
+4d7 4dc 4e0 4e2 4ee 4f0 4f4 4f7
+4fa 4fb 500 503 507 50b 50f 510
+512 516 51a 51e 522 523 525 529
+52d 531 535 538 53c 53e 542 545
+547 54b 552 554 558 55f 563 564
+568 56c 56d 571 575 578 57c 580
+583 587 58b 58f 591 595 596 59a
+59e 59f 5a6 5aa 5ae 5b1 5b5 5b9
+5ba 5bc 5bd 5bf 5c0 5c5 5c9 5cd
+5d0 5d1 1 5d6 5db 5dc 5e2 5e6
+5e7 5ec 5f0 5f3 5f7 5fb 5ff 601
+605 606 60a 60e 60f 616 61a 61e
+622 623 625 626 628 62c 62f 630
+635 639 63d 640 641 1 646 64b
+64c 652 656 657 65c 660 664 668
+66b 66c 671
+/
+

@@ -1,11 +1,11 @@
-create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
+ï»¿CREATE OR REPLACE PACKAGE BODY IPTV.BSM_CLIENT_SERVICE_DEV2 Is
 
   -- Private type declarations
   -- type <TypeName> is <Datatype>;
 
   --  Sms_Purchase Varchar2(1024) := 'LiTV%A4W%AE%F8%B6O+%ADq%B3%E6%BDs%B8%B9#PURCHASE_NO#%2C%AA%F7%C3B#AMOUNT#';
-  Sms_Purchase    Varchar2(1024) := 'LiTV½u¤W¼vµøªA°È¤w¦¬¨ì±zªº­q³æ#PURCHASE_NO#,ª÷ÃB#AMOUNT#,©ú²Ó½Ğ¦Ü¹qµø©Îºô¸ô·|­û±M°Ï¬d¸ß';
-  Sms_Purchase_4G Varchar2(1024) := '¥|©u¼vµø4gTV¤w¦¬¨ì±zªº­q³æ#PURCHASE_NO#,ª÷ÃB#AMOUNT#,©ú²Ó½Ğ¦Üºô¸ô·|­û±M°Ï¬d¸ß'; --  Acl_Http_Url Varchar2(256) := 'http://172.21.200.248/ACL_Interface/Service.Asmx';
+  Sms_Purchase    Varchar2(1024) := 'LiTVç·šä¸Šå½±è¦–æœå‹™å·²æ”¶åˆ°æ‚¨çš„è¨‚å–®#PURCHASE_NO#,é‡‘é¡#AMOUNT#,æ˜ç´°è«‹è‡³é›»è¦–æˆ–ç¶²è·¯æœƒå“¡å°ˆå€æŸ¥è©¢';
+  Sms_Purchase_4G Varchar2(1024) := 'å››å­£å½±è¦–4gTVå·²æ”¶åˆ°æ‚¨çš„è¨‚å–®#PURCHASE_NO#,é‡‘é¡#AMOUNT#,æ˜ç´°è«‹è‡³ç¶²è·¯æœƒå“¡å°ˆå€æŸ¥è©¢'; --  Acl_Http_Url Varchar2(256) := 'http://172.21.200.248/ACL_Interface/Service.Asmx';
   ACL_Http_Url    Varchar2(256) := 'https://us-dev-cdi01.tgc-service.net/2010-10-26/soapapi/Authentication?wsdl';
   Sms_User_Id     Varchar2(32) := 'edwardhuang';
   Sms_Password    Varchar2(32) := 'QWer1234';
@@ -160,7 +160,7 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
     v_msg := bsm_sms_service.Send_Sms_Messeage(p_Phone_No,
                                                p_Message,
                                                p_client_id,
-                                               '­q³æ½T»{');
+                                               'è¨‚å–®ç¢ºèª');
   
     Return v_msg;
   
@@ -307,7 +307,7 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
            Where Mac_Address = In_Client_Info.Serial_ID
              and rownum <= 1;
           --
-          -- ·s¼W­«½Æ Mac_Address ³B²z
+          -- æ–°å¢é‡è¤‡ Mac_Address è™•ç†
           --
         
           if upper(v_real_mac_address) <> upper(In_Client_Info.Mac_Address) then
@@ -333,7 +333,7 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
     -- no Serial_ID
     --
     If v_Temp_Serial_Id Is Null Then
-      --·s¾÷³B²z
+      --æ–°æ©Ÿè™•ç†
     
       -- null MAC_Address
       If In_Client_Info.Mac_Address Is Null Then
@@ -447,10 +447,10 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
                                                  v_Client_Info.Status_Flg);
     
     Elsif v_Temp_Serial_Id Is Not Null Then
-      -- ­«·s¶}³q
+      -- é‡æ–°é–‹é€š
     
       Begin
-        -- ¨úª¬ºA
+        -- å–ç‹€æ…‹
         v_Client_Info := Get_Client_Info(v_Temp_Serial_Id);
         if v_Client_Info.Owner_Phone <> In_Client_Info.Owner_Phone then
           Update BSM_CLIENT_MAS a
@@ -464,7 +464,7 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
           null;
         else
           if v_client_info.status_flg = 'A' then
-            -- ¨ú¥Í®Ä®É¶¡
+            -- å–ç”Ÿæ•ˆæ™‚é–“
             if (In_Client_Info.Serial_ID is null) then
               Select register_date
                 into v_register_date
@@ -477,7 +477,7 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
                where a.mac_address = In_Client_Info.Serial_ID;
             end if;
           
-            -- ¶W¹L1¤p®ÉªÌ§Y¤£¯à­×§ï
+            -- è¶…é1å°æ™‚è€…å³ä¸èƒ½ä¿®æ”¹
             if ((v_register_date + (1 / 24)) < sysdate) then
               raise Status_Exception;
             end if;
@@ -605,7 +605,7 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
     End If;
   
     --
-    -- ´ú¸Õ±b¸¹³B²z
+    -- æ¸¬è©¦å¸³è™Ÿè™•ç†
     --
     --
   
@@ -707,37 +707,37 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
                 if v_tstar = 'y' and
                    substr(In_Client_Info.Serial_Id, 1, 2) = '2A' then
                   v_msg := BSM_SMS_SERVICE.Send_Sms_Messeage(In_Client_Info.Owner_Phone,
-                                                             '±zªºLiTV³q¦æ½X¬°' ||
+                                                             'æ‚¨çš„LiTVé€šè¡Œç¢¼ç‚º' ||
                                                              v_Activation_No ||
-                                                             '½Ğ¦bµe­±¿é¤J³q¦æ½X¡Aµù¥U¦¨¥\§Y¦¨¬°LiTV·|­û¨Ã¥i¨É¥ÎªA°È',
+                                                             'è«‹åœ¨ç•«é¢è¼¸å…¥é€šè¡Œç¢¼ï¼Œè¨»å†ŠæˆåŠŸå³æˆç‚ºLiTVæœƒå“¡ä¸¦å¯äº«ç”¨æœå‹™',
                                                              v_Client_Info.Serial_Id);
                 elsif v_sg in ('LTSMS00', 'LTSMS02', 'LTSMS01') then
                   v_msg := BSM_SMS_SERVICE.Send_Sms_Messeage(In_Client_Info.Owner_Phone,
-                                                             '±zªº³q¦æ½X¬°' ||
+                                                             'æ‚¨çš„é€šè¡Œç¢¼ç‚º' ||
                                                              v_Activation_No ||
-                                                             '½Ğ¦bµe­±¿é¤J³q¦æ½X¶i¦æ¶}³q¡C',
+                                                             'è«‹åœ¨ç•«é¢è¼¸å…¥é€šè¡Œç¢¼é€²è¡Œé–‹é€šã€‚',
                                                              v_Client_Info.Serial_Id);
                 elsif v_sg in ('LTWEB00') then
                   v_msg := BSM_SMS_SERVICE.Send_Sms_Messeage(In_Client_Info.Owner_Phone,
-                                                             '±zªºLiTV³q¦æ½X¬°' ||
+                                                             'æ‚¨çš„LiTVé€šè¡Œç¢¼ç‚º' ||
                                                              v_Activation_No ||
-                                                             '½Ğ¦bµe­±¿é¤J³q¦æ½X¡Aµù¥U¦¨¥\§Y¦¨¬°LiTV·|­û¨Ã¥i§K¶OÅéÅç¡A§K¶O¤º®e½Ğ¸Ô¨£ºô¯¸»¡©ú¡C',
+                                                             'è«‹åœ¨ç•«é¢è¼¸å…¥é€šè¡Œç¢¼ï¼Œè¨»å†ŠæˆåŠŸå³æˆç‚ºLiTVæœƒå“¡ä¸¦å¯å…è²»é«”é©—ï¼Œå…è²»å…§å®¹è«‹è©³è¦‹ç¶²ç«™èªªæ˜ã€‚',
                                                              v_Client_Info.Serial_Id);
                 elsif substr(In_Client_Info.Serial_Id, 1, 2) = 'F6' then
                   v_msg := BSM_SMS_SERVICE.Send_Sms_Message_4g(In_Client_Info.Owner_Phone,
-                                                               '±zªº4gTV·|­û³q¦æ½X¬°' ||
+                                                               'æ‚¨çš„4gTVæœƒå“¡é€šè¡Œç¢¼ç‚º' ||
                                                                v_Activation_No ||
-                                                               '½Ğ¦bµe­±¿é¤J³q¦æ½X¡Aµù¥U¦¨¥\§Y¦¨¬°4gTV·|­û¨Ã¥i§K¶OÅéÅç¡A§K¶O¤º®e½Ğ¸Ô¨£ºô¯¸»¡©ú¡C',
+                                                               'è«‹åœ¨ç•«é¢è¼¸å…¥é€šè¡Œç¢¼ï¼Œè¨»å†ŠæˆåŠŸå³æˆç‚º4gTVæœƒå“¡ä¸¦å¯å…è²»é«”é©—ï¼Œå…è²»å…§å®¹è«‹è©³è¦‹ç¶²ç«™èªªæ˜ã€‚',
                                                                v_Client_Info.Serial_Id);
                 
-                  -- '±zªºLiTV³q¦æ½X¬°'||v_Activation_No ||'½Ğ¦bµe­±¿é¤J³q¦æ½X¡Aµù¥U¦¨¥\§Y¦¨¬°LiTV·|­û¨Ã¥i¨É¤C¤Ñ§K¶OÅéÅç¡A§K¶O¤º®e½Ğ¸Ô¨£ºô¯¸»¡©ú¡C'
+                  -- 'æ‚¨çš„LiTVé€šè¡Œç¢¼ç‚º'||v_Activation_No ||'è«‹åœ¨ç•«é¢è¼¸å…¥é€šè¡Œç¢¼ï¼Œè¨»å†ŠæˆåŠŸå³æˆç‚ºLiTVæœƒå“¡ä¸¦å¯äº«ä¸ƒå¤©å…è²»é«”é©—ï¼Œå…è²»å…§å®¹è«‹è©³è¦‹ç¶²ç«™èªªæ˜ã€‚'
                 
                 else
                 
                   v_msg := BSM_SMS_SERVICE.Send_Sms_Messeage(In_Client_Info.Owner_Phone,
-                                                             '±zªºLiTV³q¦æ½X¬°' ||
+                                                             'æ‚¨çš„LiTVé€šè¡Œç¢¼ç‚º' ||
                                                              v_Activation_No ||
-                                                             '½Ğ¿é¤J³q¦æ½X¶i¦æ¶}³q¡C´£¿ô±z­Y«ù¦³§K¶O§I´«¨é¡A½Ğ©ó¶}³q«á¦Ü§I´«°Ï¡A§I´«LiTVªA°È!',
+                                                             'è«‹è¼¸å…¥é€šè¡Œç¢¼é€²è¡Œé–‹é€šã€‚æé†’æ‚¨è‹¥æŒæœ‰å…è²»å…Œæ›åˆ¸ï¼Œè«‹æ–¼é–‹é€šå¾Œè‡³å…Œæ›å€ï¼Œå…Œæ›LiTVæœå‹™!',
                                                              v_Client_Info.Serial_Id);
                 end if;
                 Commit;
@@ -1009,14 +1009,14 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
                  (select e.package_id
                      from bsm_purchase_mas d, bsm_purchase_item e
                     where e.mas_pk_no = d.pk_no
-                      and d.pay_type = 'ÃØ°e'
+                      and d.pay_type = 'è´ˆé€'
                       and d.serial_id = p_serial_id
                       and e.device_id = p_device_id
                       and d.status_flg in ('A', 'P', 'Z')
                       and d.src_no = 'CLIENT_ACTIVATED'))
           
           union all
-          select package_id, null item_id,NVL(b.device_base,'D') device_base,'N' permanent,b.description
+          select package_id, null item_id,'D' device_base,'N' permanent,b.description
             from mfg_model_services b
            where p_model_no like '%' || b.model_no || '%'
              and status_flg = 'P'
@@ -1024,7 +1024,7 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
                  (select e.package_id
                      from bsm_purchase_mas d, bsm_purchase_item e
                     where e.mas_pk_no = d.pk_no
-                      and d.pay_type = 'ÃØ°e'
+                      and d.pay_type = 'è´ˆé€'
                       and e.device_id = p_device_id
                       and d.status_flg in ('A', 'P', 'Z')
                       and d.src_no = 'CLIENT_ACTIVATED'));
@@ -1063,7 +1063,7 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
          where a.serial_id = p_client_id;
       
         --
-        -- ¨t²Î¶}³q¤è®×
+        -- ç³»çµ±é–‹é€šæ–¹æ¡ˆ
         --
         -- New Account
         if v_Client_Info.Status_Flg <> 'A' then
@@ -1220,7 +1220,7 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
               v_coupon_cnt := 0;
           end;
         
-          -- «DDemo ¤â¾÷,»P¨S¦³¦Û°Ê¶}³qªÌ,°_°ÊÀH¾÷ÃØ°e¤è®×
+          -- éDemo æ‰‹æ©Ÿ,èˆ‡æ²’æœ‰è‡ªå‹•é–‹é€šè€…,èµ·å‹•éš¨æ©Ÿè´ˆé€æ–¹æ¡ˆ
           begin
             if v_model_info is null then
               v_model_no := bsm_cdi_service.get_device_model(p_client_id,
@@ -1288,10 +1288,11 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
                     into v_dup
                     from bsm_purchase_mas d, bsm_purchase_item e
                    where e.mas_pk_no = d.pk_no
-                     and d.pay_type = 'ÃØ°e'
+                     and d.pay_type = 'è´ˆé€'
                      and ((nvl(c3rec.device_base,'D') = 'C' 
-                      and ( d.serial_id =p_client_id or e.device_id = p_device_id))
-                              or ((nvl(c3rec.device_base,'D')='D') and e.device_id = p_device_id))
+                              and d.serial_id = p_client_id)
+                              or (nvl(c3rec.device_base,'D')='D'))
+                     and e.device_id = p_device_id
                      and d.status_flg in ('A', 'P', 'Z')
                      and d.src_no = 'CLIENT_ACTIVATED'
                      and e.package_id = c3rec.package_id
@@ -1301,7 +1302,7 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
                     null;
                 end;
               
-                -- 4gTV¹LÂo
+                -- 4gTVéæ¿¾
                 if substr(p_client_id, 1, 2) = 'F6' then
                   v_dup := 'Y';
                 end if;
@@ -1312,7 +1313,7 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
                     v_Purchase_Pk_No      number(16);
                     v_purchase_no         varchar2(32);
                     v_acc_invo_no         varchar2(32);
-                    v_pay_type            varchar2(32) := 'ÃØ°e';
+                    v_pay_type            varchar2(32) := 'è´ˆé€';
                     v_Client_Info         Tbsm_Client_Info;
                     v_acc_name            varchar2(32);
                     v_tax_code            varchar2(32);
@@ -1421,7 +1422,7 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
                        c3rec.description);
                   
                     --
-                    --  ­pºâ»ù®æ
+                    --  è¨ˆç®—åƒ¹æ ¼
                     --
                     Begin
                       Select a.Charge_Amount,
@@ -1450,7 +1451,7 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
                     end if;
                   
                     v_charge_code := 'PMONTHFEE';
-                    v_charge_name := '¹w¥I¤ë¯²¶O';
+                    v_charge_name := 'é ä»˜æœˆç§Ÿè²»';
                     --  end;
                   
                     Insert Into Bsm_Purchase_Item
@@ -1503,7 +1504,7 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
                      if v_model_no like '%MiTV-MSSP3%' and v_id = 'CDG001' then
                     
                       v_msg := bsm_sms_service.send_sms_text('8080',
-                                                             '¿Ë·Rªº«È¤á±z¦n,®¥³ß±zÀò±oÀW¹D¥şÀ\¤@­Ó¤ë',
+                                                             'è¦ªæ„›çš„å®¢æˆ¶æ‚¨å¥½,æ­å–œæ‚¨ç²å¾—é »é“å…¨é¤ä¸€å€‹æœˆ',
                                                              v_Client_Info.Owner_Phone);
                     end if;
                     if c3rec.permanent = 'P' then
@@ -1691,7 +1692,7 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
         when no_data_found then
           v_demo_flg := 'N';
       end;
-      --     v_Result.Result_Message := 'message:{"subject":"'||v_software_group||'¿Ë·Rªº«È¤á±z¦n,®¥³ß±zÀò±o¤w¤UªA°È(TEST)","body":"¹qÀWÀW¨ì®MÀ\\nÀH¿ï¹q¼v¨â­Ó¤ë"}';
+      --     v_Result.Result_Message := 'message:{"subject":"'||v_software_group||'è¦ªæ„›çš„å®¢æˆ¶æ‚¨å¥½,æ­å–œæ‚¨ç²å¾—å·²ä¸‹æœå‹™(TEST)","body":"é›»é »é »åˆ°å¥—é¤\néš¨é¸é›»å½±å…©å€‹æœˆ"}';
       if v_demo_flg = 'N' then
         for i in c1(v_client_id, v_device_id) loop
           v_msg := bsm_purchase_post.CLIENT_REGIETER_COUPON(v_client_id,
@@ -1793,7 +1794,7 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
       Return v_Result;
     when lock_client then
       v_Result.Result_Code    := 'BSM-00104';
-      v_Result.Result_Message := '¨t²Î¦£¸L¤¤,½Ğµy­Ô­«¸Õ';
+      v_Result.Result_Message := 'ç³»çµ±å¿™ç¢Œä¸­,è«‹ç¨å€™é‡è©¦';
       Return v_Result;
   End;
 
@@ -1888,9 +1889,9 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
     v_org_no      := 1;
     v_test_client := 'N';
     if upper(In_Bsm_Purchase.Pay_Type) = 'CREDITS' then
-      In_Bsm_Purchase.Pay_Type := 'Àx­È¥d';
+      In_Bsm_Purchase.Pay_Type := 'å„²å€¼å¡';
     elsif upper(In_Bsm_Purchase.PAY_TYPE) = 'CREDIT' then
-      In_Bsm_Purchase.Pay_Type := '«H¥Î¥d';
+      In_Bsm_Purchase.Pay_Type := 'ä¿¡ç”¨å¡';
     end if;
   
     declare
@@ -2006,9 +2007,9 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
     In_BSM_Purchase.SERIAL_ID := upper(In_BSM_Purchase.SERIAL_ID);
   
     if upper(In_Bsm_Purchase.Pay_Type) = 'CREDITS' then
-      In_Bsm_Purchase.Pay_Type := 'Àx­È¥d';
+      In_Bsm_Purchase.Pay_Type := 'å„²å€¼å¡';
     elsif upper(In_Bsm_Purchase.PAY_TYPE) = 'CREDIT' then
-      In_Bsm_Purchase.Pay_Type := '«H¥Î¥d';
+      In_Bsm_Purchase.Pay_Type := 'ä¿¡ç”¨å¡';
     end if;
     if In_BSM_Purchase.SERIAL_ID='2A00FBF80A01E3D6' then
       Raise Dup_Transfer;
@@ -2034,15 +2035,15 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
         Null;
     End;
   
-    -- ¨úªº³æ¾Ú¥DÁä¤Î½s¸¹
+    -- å–çš„å–®æ“šä¸»éµåŠç·¨è™Ÿ
   
     v_Purchase_Mas_Code := 'BSMPUR';
     v_test_client       := 'N';
   
-    -- v_client_info ¥i¨ú®ø,¥u¯d£»client id
+    -- v_client_info å¯å–æ¶ˆ,åªç•™Ë™client id
     v_Client_Info := Get_Client_Info(In_Bsm_Purchase.Serial_Id);
   
-    -- ±j­¢­nµ¹ª©¸¹
+    -- å¼·è¿«è¦çµ¦ç‰ˆè™Ÿ
     if p_sw_version is null then
       v_software_group := get_software_group(In_Bsm_Purchase.Serial_Id,
                                              p_device_id);
@@ -2079,8 +2080,8 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
                                             Sysdate,
                                             v_Purchase_Mas_Code,
                                             v_Purchase_Pk_No);
-    -- ÃØ°e¨S¦³±b³æ½s¸¹  
-    if In_Bsm_Purchase.Pay_Type not in ('ÃØ°e') then
+    -- è´ˆé€æ²’æœ‰å¸³å–®ç·¨è™Ÿ  
+    if In_Bsm_Purchase.Pay_Type not in ('è´ˆé€') then
       v_acc_invo_no := sysapp_util.get_mas_no(v_org_no,
                                               2,
                                               sysdate,
@@ -2089,7 +2090,7 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
     end if;
   
     In_Bsm_Purchase.MAS_NO   := v_Purchase_No;
-    In_Bsm_Purchase.Pay_Type := nvl(In_Bsm_Purchase.Pay_Type, '«H¥Î¥d');
+    In_Bsm_Purchase.Pay_Type := nvl(In_Bsm_Purchase.Pay_Type, 'ä¿¡ç”¨å¡');
   
     v_tax_code := 'OUTTAX1';
   
@@ -2097,7 +2098,7 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
     -- tax code process
     --
   
-    if In_Bsm_Purchase.Pay_Type in ('Àx­È¥d', 'APT') then
+    if In_Bsm_Purchase.Pay_Type in ('å„²å€¼å¡', 'APT') then
       v_tax_flg  := 'N';
       v_tax_rate := 0;
     else
@@ -2106,9 +2107,9 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
     end if;
   
     --
-    -- ¤¤µØ¹q«H±b³æ
+    -- ä¸­è¯é›»ä¿¡å¸³å–®
     --
-    if In_Bsm_Purchase.PAY_TYPE = '¤¤µØ¹q«H±b³æ' then
+    if In_Bsm_Purchase.PAY_TYPE = 'ä¸­è¯é›»ä¿¡å¸³å–®' then
       if v_otpw is null or v_otpw = '' then
         raise Error_null_otpw;
       end if;
@@ -2118,7 +2119,7 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
       end if;
     end if;
   
-    if In_Bsm_Purchase.PAY_TYPE = '¤¤µØ¹q«H«H¥Î¥d' then
+    if In_Bsm_Purchase.PAY_TYPE = 'ä¸­è¯é›»ä¿¡ä¿¡ç”¨å¡' then
       if v_otpw is null or v_otpw = '' then
         raise Error_null_otpw;
       end if;
@@ -2131,7 +2132,7 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
     
     end if;
   
-    if In_Bsm_Purchase.PAY_TYPE = '¤¤µØ¹q«HATM' then
+    if In_Bsm_Purchase.PAY_TYPE = 'ä¸­è¯é›»ä¿¡ATM' then
       if v_otpw is null or v_otpw = '' then
         raise Error_null_otpw;
       end if;
@@ -2153,7 +2154,7 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
       v_recurrent := 'O';
     end if;
   
-    if In_Bsm_Purchase.PAY_TYPE in ('IOS', '¤¤µØ¹q«H±b³æ', 'TSTART') then
+    if In_Bsm_Purchase.PAY_TYPE in ('IOS', 'ä¸­è¯é›»ä¿¡å¸³å–®', 'TSTART') then
       v_recurrent  := 'R';
       v_start_type := 'S';
     else
@@ -2254,7 +2255,7 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
     v_recurrent := 'O';
     For i_Items In 1 .. In_Bsm_Purchase.Details.Count Loop
       --
-      --  ­pºâ»ù®æ
+      --  è¨ˆç®—åƒ¹æ ¼
       --
       v_id := In_Bsm_Purchase.Details(i_Items).Offer_Id;
       Begin
@@ -2262,10 +2263,6 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
           then
             In_Bsm_Purchase.Details(i_Items).Offer_Id:='XD0005';
         end if;
-    --    if In_Bsm_Purchase.PAY_TYPE in ('«H¥Î¥d','CREDIT') and  In_Bsm_Purchase.Details(i_Items).Offer_Id='XD0005'
-    --      then
-    --        In_Bsm_Purchase.Details(i_Items).Offer_Id:='XD0012';
-    --    end if;
         begin
           Select a.Charge_Amount,
                  a.Charge_Amount,
@@ -2324,7 +2321,7 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
         end;
       
         --
-        -- §é¦©³B²z
+        -- æŠ˜æ‰£è™•ç†
         --
         declare
           v_nobuy_from date;
@@ -2371,7 +2368,7 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
                  and b.mas_pk_no = a.pk_no
                  and a.status_flg = 'Z'
                  and a.pay_type in
-                     ('«H¥Î¥d', 'ATM', 'CREAIT', 'REMIT', 'HINET', 'SONET')
+                     ('ä¿¡ç”¨å¡', 'ATM', 'CREAIT', 'REMIT', 'HINET', 'SONET')
                  and c.package_cat_id1 = v_package_cat_id
                  and a.serial_id = In_Bsm_Purchase.Serial_Id
                  and a.purchase_date >= v_nobuy_from
@@ -2392,9 +2389,9 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
            where pk_no = v_purchase_pk_no;
         
           v_recurrent := 'O';
-          -- recurrent ÀË¬d³B²z ,ÃØ°e¥i¥H¤£­n
+          -- recurrent æª¢æŸ¥è™•ç† ,è´ˆé€å¯ä»¥ä¸è¦
         elsif (v_package_recurrent = 'R' and
-              In_Bsm_Purchase.Pay_Type not in ('ÃØ°e')) then
+              In_Bsm_Purchase.Pay_Type not in ('è´ˆé€')) then
           update bsm_purchase_mas
              set recurrent = 'R'
            where pk_no = v_purchase_pk_no;
@@ -2420,7 +2417,7 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
         From Dual;
     
       v_charge_code := 'PMONTHFEE';
-      v_charge_name := '¹w¥I¤ë¯²¶O';
+      v_charge_name := 'é ä»˜æœˆç§Ÿè²»';
     
       Insert Into Bsm_Purchase_Item
         (Pk_No,
@@ -2465,7 +2462,7 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
          v_package_cat1,
          v_price_desc
          );
-              if  p_sw_version != 'RECURRENT_AUTO' and In_Bsm_Purchase.Pay_Type='«H¥Î¥d' then    
+              if  p_sw_version != 'RECURRENT_AUTO' and In_Bsm_Purchase.Pay_Type='ä¿¡ç”¨å¡' then    
       declare
        v_char varchar2(1024);
        begin
@@ -2484,11 +2481,10 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
          when no_data_found then 
            if v_package_recurrent='R' then
              begin
-                   Select 'x' into v_char from bsm_recurrent_mas a,bsm_purchase_item b,bsm_package_mas c
+                   Select 'x' into v_char from bsm_recurrent_mas a,bsm_purchase_item b
       where a.src_pk_no=b.mas_pk_no and a.status_flg='P'
-       and ( ( b.package_id= 'XD0001' and  In_Bsm_Purchase.Details(i_Items).Offer_Id not in ('XD0016','XD0012','XD0008','XD0009'))
-       or ( b.package_id= 'XD0012' and ( b.amount <> 1990 or In_Bsm_Purchase.Details(i_Items).Offer_Id not in ('XD0009')) ))
-       and c.package_id=In_Bsm_Purchase.Details(i_Items).Offer_Id
+       and ( ( b.package_id= 'XD0001' and In_Bsm_Purchase.Details(i_Items).Offer_Id not in ('XD0012'))
+       or b.package_id= 'XD0012')
        and a.client_id=In_Bsm_Purchase.Serial_Id;
        update bsm_purchase_mas a set
        a.status_flg='F'
@@ -2630,18 +2626,18 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
     */
     if ( substr(v_Client_info.Owner_Phone, 1, 7) = '0900001' ) or v_Client_info.Owner_Phone in ('0916252480','0901266235','0919924308')  then
       --
-      -- Demo ¾÷¸T¤îÁÊ¶R
+      -- Demo æ©Ÿç¦æ­¢è³¼è²·
       --
       raise Error_Demo_account;
     end if;
     -- add test client check
     if v_test_client = 'N' then
-      if In_Bsm_Purchase.Pay_Type = 'Àx­È¥d' then
+      if In_Bsm_Purchase.Pay_Type = 'å„²å€¼å¡' then
         v_Payment_Result := Bsm_Purchase_Post.use_credits(In_BSM_Purchase.SERIAL_ID,
                                                           v_Purchase_Pk_No);
-      elsif In_Bsm_Purchase.Pay_Type in ('¶×´Ú', 'ATM', '¨ä¥L', 'REMIT') then
-        v_Payment_result := '¶×´Ú';
-      elsif In_Bsm_Purchase.Pay_Type in ('ÃØ°e', '«H¥Î¥d¤G¦¸¦©´Ú') then
+      elsif In_Bsm_Purchase.Pay_Type in ('åŒ¯æ¬¾', 'ATM', 'å…¶ä»–', 'REMIT') then
+        v_Payment_result := 'åŒ¯æ¬¾';
+      elsif In_Bsm_Purchase.Pay_Type in ('è´ˆé€', 'ä¿¡ç”¨å¡äºŒæ¬¡æ‰£æ¬¾') then
         v_Payment_Result := 'PRC=0';
       elsif In_Bsm_Purchase.Pay_Type = 'APT' then
       
@@ -2677,7 +2673,7 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
           end if;
         end;
       elsif In_Bsm_Purchase.PAY_TYPE in
-            ('¤¤µØ¹q«H±b³æ', '¤¤µØ¹q«H«H¥Î¥d', '¤¤µØ¹q«HATM') then
+            ('ä¸­è¯é›»ä¿¡å¸³å–®', 'ä¸­è¯é›»ä¿¡ä¿¡ç”¨å¡', 'ä¸­è¯é›»ä¿¡ATM') then
         if v_recurrent = 'R' then
           declare
             v_char varchar2(32);
@@ -2688,7 +2684,7 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
                    bsm_purchase_item  b,
                    bsm_client_details c
              where a.serial_id = In_BSM_Purchase.SERIAL_ID
-               and a.PAY_TYPE = '¤¤µØ¹q«H±b³æ'
+               and a.PAY_TYPE = 'ä¸­è¯é›»ä¿¡å¸³å–®'
                and a.status_flg = 'Z'
                and b.mas_pk_no = a.pk_no
                and b.package_id = In_Bsm_Purchase.details(1).offer_id
@@ -2716,9 +2712,9 @@ create or replace PACKAGE BODY BSM_CLIENT_SERVICE Is
                  b.approval_code = v_cht_auth,
                  b.cht_otpw      = v_otpw
            Where b.pk_no = v_Purchase_Pk_No;
-          if In_Bsm_Purchase.PAY_TYPE in ('¤¤µØ¹q«HATM') then
+          if In_Bsm_Purchase.PAY_TYPE in ('ä¸­è¯é›»ä¿¡ATM') then
             if Instr(v_Payment_Result, 'PRC=0') > 0 then
-              v_Payment_Result := '¶×´Ú';
+              v_Payment_Result := 'åŒ¯æ¬¾';
               update bsm_purchase_mas a
                  set a.inv_acc = v_aa_uid, a.cht_otpw = v_otpw
                Where Pk_No = v_Purchase_Pk_No;
@@ -2823,24 +2819,6 @@ and a.mas_pk_no=v_Purchase_Pk_No;
         when others then
           null;
       End;
-      --
-      -- XD0016 + PRO011 -> XD0005
-      --
-      declare
-       v_char varchar2(32);
-      begin
-        select 'x'  into  v_char from bsm_purchase_item
-              where mas_pk_no =v_Purchase_Pk_No and package_id='XD0016' and exists 
-        (select 'x' from bsm_purchase_item d where d.mas_pk_no =v_Purchase_Pk_No and package_id='PRO11') and rownum<=1;
-        v_recurrent:='O';
-       update bsm_purchase_item
-       set package_id='XD0005'
-        where mas_pk_no =v_Purchase_Pk_No and package_id='XD0016' and exists 
-        (select 'x' from bsm_purchase_item d where d.mas_pk_no =v_Purchase_Pk_No and package_id='PRO11');
-        commit;
-      exception
-         when no_data_found then null;
-       end;
     
       if v_recurrent = 'R' then
         declare
@@ -2867,16 +2845,13 @@ and a.mas_pk_no=v_Purchase_Pk_No;
             v_recurrent_type := 'CREDIT';
           end if;
         
-          if In_Bsm_Purchase.PAY_TYPE = '¤¤µØ¹q«H±b³æ' then
+          if In_Bsm_Purchase.PAY_TYPE = 'ä¸­è¯é›»ä¿¡å¸³å–®' then
             v_recurrent_type := 'HINET';
           end if;
         
           if In_Bsm_Purchase.PAY_TYPE = 'IOS' then
             v_recurrent_type := 'IOS';
           end if;
-          
-
-    
         
           --    if v_promo_code is not null then
         
@@ -2990,14 +2965,13 @@ and a.mas_pk_no=v_Purchase_Pk_No;
               
                 v_msg := bsm_recurrent_util.stop_recurrent(i.client_id,
                                                            j.purchase_id,
-                                                           'ÁÊ¶R¨ä¥L¤è®×');
+                                                           'è³¼è²·å…¶ä»–æ–¹æ¡ˆ');
               end loop;
             end loop;
           end;
         
         end;
       end if;
-  
     
       -- 
       -- Call ACL
@@ -3006,7 +2980,7 @@ and a.mas_pk_no=v_Purchase_Pk_No;
                                                 v_Purchase_Pk_No);
     
       --
-      -- Option Coupon ³B²z
+      -- Option Coupon è™•ç†
       --
     
       declare
@@ -3090,7 +3064,7 @@ and a.mas_pk_no=v_Purchase_Pk_No;
                      and c.src_item_pk_no = e.pk_no
                      and d.src_no = v_coupon_no
                      and rownum <= 1;
-                  v_package_dtls   := '{"desc":"¥D±b¸¹ :¤w¶}³q","client_id":"' ||
+                  v_package_dtls   := '{"desc":"ä¸»å¸³è™Ÿ :å·²é–‹é€š","client_id":"' ||
                                       In_Bsm_Purchase.SERIAL_ID || '",
                   "coupon_id":"' ||
                                       v_coupon_no || '",
@@ -3110,7 +3084,7 @@ and a.mas_pk_no=v_Purchase_Pk_No;
                   v_package_dtls := v_package_dtls || ',';
                 end if;
               
-                v_package_dtls := v_package_dtls || '{"desc":"°Æ±b¸¹ :§I´«¨é ' ||
+                v_package_dtls := v_package_dtls || '{"desc":"å‰¯å¸³è™Ÿ :å…Œæ›åˆ¸ ' ||
                                   v_coupon_id || '",
                                   "client_id":"_CLIENT' ||
                                   v_coupon_no || '_","coupon_id":"' ||
@@ -3149,7 +3123,7 @@ and a.mas_pk_no=v_Purchase_Pk_No;
     
       --
       --
-      -- ©µ®i³B²z
+      -- å»¶å±•è™•ç†
       --
       declare
         cursor c1 is
@@ -3206,7 +3180,7 @@ and a.mas_pk_no=v_Purchase_Pk_No;
     
       --
       --
-      -- ©µ®i³B²z Options
+      -- å»¶å±•è™•ç† Options
       --
       declare
         cursor c1 is
@@ -3246,12 +3220,6 @@ and a.mas_pk_no=v_Purchase_Pk_No;
       
         v_end_date date;
       begin
-        --
-        -- §R°£XD0016 ªºE_XDG005 ÃØ°e
-        -- 
-        delete bsm_purchase_item where mas_pk_no =v_Purchase_Pk_No and package_id='E_XDG005' and exists 
-        (select 'x' from bsm_purchase_item d where d.mas_pk_no =v_Purchase_Pk_No and package_id='XD0016');
-        commit;
         for i in c1 loop
           select max(add_months(a.end_date, i.extend_months) +
                      i.extend_days)
@@ -3289,7 +3257,7 @@ and a.mas_pk_no=v_Purchase_Pk_No;
         for i in c1 loop
           update bsm_client_details d
              set d.end_date     = add_months(d.start_date, 18),
-                 d.package_name = '¹w¥I¤@¦~¥[ÃØ6­Ó¤ë'
+                 d.package_name = 'é ä»˜ä¸€å¹´åŠ è´ˆ6å€‹æœˆ'
            where d.src_pk_no = v_Purchase_Pk_No
              and package_id = 'XD0005';
         end loop;
@@ -3344,7 +3312,7 @@ and a.mas_pk_no=v_Purchase_Pk_No;
         end loop;
       end;
       --
-      -- Option Coupon ³B²z
+      -- Option Coupon è™•ç†
       --
       -- Update Purchase Order Status
       --
@@ -3386,15 +3354,15 @@ and a.mas_pk_no=v_Purchase_Pk_No;
       begin
         If v_Client_Info.Owner_Phone Is Not Null and
            In_Bsm_Purchase.Pay_Type in
-           ('«H¥Î¥d',
+           ('ä¿¡ç”¨å¡',
             'CREDIT',
-            '¶×´Ú',
+            'åŒ¯æ¬¾',
             'ATM',
             'REMIT',
-            'Àx­È¥d',
-            '¤¤µØ¹q«H±b³æ',
-            '¤¤µØ¹q«H«H¥Î¥d',
-            '«H¥Î¥d¤G¦¸¦©´Ú') and
+            'å„²å€¼å¡',
+            'ä¸­è¯é›»ä¿¡å¸³å–®',
+            'ä¸­è¯é›»ä¿¡ä¿¡ç”¨å¡',
+            'ä¿¡ç”¨å¡äºŒæ¬¡æ‰£æ¬¾') and
            substr(nvl(In_Bsm_Purchase.Src_No, '  '), 1, 2) != 'RE' and
            substr(nvl(In_Bsm_Purchase.Src_No, '  '), 1, 2) != 'BE' Then
         
@@ -3424,7 +3392,7 @@ and a.mas_pk_no=v_Purchase_Pk_No;
             end if;
             if v_promo_code = 'MKT564' then
               v_Sms_Result := bsm_sms_service.send_sms_text('8080',
-                                                            'ªF´ËÁÊª«§é¦©ª÷³qª¾Â²°T¡A½Ğ¼·¥´±MÄİ­qÁÊ±M½u0800-070-886¡A­qÁÊ®É»¡¥X¡GLiTV¿W¨É§é100¡A§Y¥i¨Ï¥Î¡]¦@7µ§¡A¤£­­ª÷ÃB§é©è¡^',
+                                                            'æ±æ£®è³¼ç‰©æŠ˜æ‰£é‡‘é€šçŸ¥ç°¡è¨Šï¼Œè«‹æ’¥æ‰“å°ˆå±¬è¨‚è³¼å°ˆç·š0800-070-886ï¼Œè¨‚è³¼æ™‚èªªå‡ºï¼šLiTVç¨äº«æŠ˜100ï¼Œå³å¯ä½¿ç”¨ï¼ˆå…±7ç­†ï¼Œä¸é™é‡‘é¡æŠ˜æŠµï¼‰',
                                                             v_Client_Info.Owner_Phone);
             end if;
           end if;
@@ -3440,17 +3408,17 @@ and a.mas_pk_no=v_Purchase_Pk_No;
       begin
       
         --
-        -- ²£¥Íµo²¼
+        -- ç”¢ç”Ÿç™¼ç¥¨
         --
-        -- ¥¿¦¡°Ï­n¬£¬q ´ú¸Õ¥d
+        -- æ­£å¼å€è¦æ´¾æ®µ æ¸¬è©¦å¡
       
-        if (In_Bsm_Purchase.PAY_TYPE <> 'Àx­È¥d' and
+        if (In_Bsm_Purchase.PAY_TYPE <> 'å„²å€¼å¡' and
            In_Bsm_Purchase.PAY_TYPE <> 'APT' and
-           In_Bsm_Purchase.PAY_TYPE <> '¤¤µØ¹q«H±b³æ' and
-           In_Bsm_Purchase.PAY_TYPE <> '¤¤µØ¹q«H«H¥Î¥d' and
+           In_Bsm_Purchase.PAY_TYPE <> 'ä¸­è¯é›»ä¿¡å¸³å–®' and
+           In_Bsm_Purchase.PAY_TYPE <> 'ä¸­è¯é›»ä¿¡ä¿¡ç”¨å¡' and
            In_Bsm_Purchase.PAY_TYPE <> 'IOS' and
-           In_Bsm_Purchase.PAY_TYPE <> 'ÃØ°e' and
-           In_Bsm_Purchase.PAY_TYPE <> '«H¥Î¥d¤G¦¸¦©´Ú') then
+           In_Bsm_Purchase.PAY_TYPE <> 'è´ˆé€' and
+           In_Bsm_Purchase.PAY_TYPE <> 'ä¿¡ç”¨å¡äºŒæ¬¡æ‰£æ¬¾') then
           begin
             select 'x'
               into v_char
@@ -3527,9 +3495,9 @@ and a.mas_pk_no=v_Purchase_Pk_No;
                  v_Purchase_Pk_No,
                  Sysdate,
                  0,
-                 'µo²¼',
+                 'ç™¼ç¥¨',
                  Sys_Event_Seq.Nextval,
-                 'µo²¼');
+                 'ç™¼ç¥¨');
               commit;
             exception
               when others then
@@ -3554,7 +3522,7 @@ and a.mas_pk_no=v_Purchase_Pk_No;
                             end
        where a.rowid = v_promo_rowid;
       commit;
-      -- ¤p«P²¾°£¥[ÃØ¤»­Ó¤ë 
+      -- å°ä¿ƒç§»é™¤åŠ è´ˆå…­å€‹æœˆ 
       /*   declare
         cursor c1 is
           Select 'x'
@@ -3572,7 +3540,7 @@ and a.mas_pk_no=v_Purchase_Pk_No;
         for i in c1 loop
           update bsm_client_details d
              set d.end_date     = add_months(d.start_date, 18),
-                 d.package_name = '¹w¥I¤@¦~¥[ÃØ6­Ó¤ë'
+                 d.package_name = 'é ä»˜ä¸€å¹´åŠ è´ˆ6å€‹æœˆ'
            where d.src_pk_no = v_Purchase_Pk_No
              and package_id = 'XD0005';
         end loop;
@@ -3619,8 +3587,8 @@ and a.mas_pk_no=v_Purchase_Pk_No;
         --  null;
       end if;
     Elsif (In_Bsm_Purchase.Pay_Type in
-          ('¶×´Ú', 'ATM', '¨ä¥L', 'REMIT', '¤¤µØ¹q«HATM') and
-          v_Payment_Result = '¶×´Ú') then
+          ('åŒ¯æ¬¾', 'ATM', 'å…¶ä»–', 'REMIT', 'ä¸­è¯é›»ä¿¡ATM') and
+          v_Payment_Result = 'åŒ¯æ¬¾') then
       Update Bsm_Purchase_Mas b
          Set b.purchase_date = Sysdate, b.status_flg = 'P'
        Where b.pk_no = v_Purchase_Pk_No;
@@ -3674,7 +3642,7 @@ and a.mas_pk_no=v_Purchase_Pk_No;
   exception
     When Status_Exception Then
       v_Result.Result_Code    := 'BSM-00400';
-      v_Result.Result_Message := 'ª¬ºA¿ù»~';
+      v_Result.Result_Message := 'ç‹€æ…‹éŒ¯èª¤';
     
       insert into bsm_purchase_log
         (mas_pk_no, event_date, event_type, event_log)
@@ -3689,7 +3657,7 @@ and a.mas_pk_no=v_Purchase_Pk_No;
     
     When Error_Activation_Code Then
       v_Result.Result_Code    := 'BSM-00401';
-      v_Result.Result_Message := '±Ò¥Î½X¿ù»~';
+      v_Result.Result_Message := 'å•Ÿç”¨ç¢¼éŒ¯èª¤';
     
       insert into bsm_purchase_log
         (mas_pk_no, event_date, event_type, event_log)
@@ -3704,7 +3672,7 @@ and a.mas_pk_no=v_Purchase_Pk_No;
     
     When Error_Package_Mas Then
       v_Result.Result_Code    := 'BSM-00402';
-      v_Result.Result_Message := 'Package ¿ù»~' || v_id;
+      v_Result.Result_Message := 'Package éŒ¯èª¤' || v_id;
     
       insert into bsm_purchase_log
         (mas_pk_no, event_date, event_type, event_log)
@@ -3732,7 +3700,7 @@ and a.mas_pk_no=v_Purchase_Pk_No;
       Return v_Result;
     When Dup_Transfer Then
       v_Result.Result_Code    := 'BSM-00404';
-      v_Result.Result_Message := '¸ê®Æ­«½Æ¶Ç°e';
+      v_Result.Result_Message := 'è³‡æ–™é‡è¤‡å‚³é€';
     
       insert into bsm_purchase_log
         (mas_pk_no, event_date, event_type, event_log)
@@ -3746,7 +3714,7 @@ and a.mas_pk_no=v_Purchase_Pk_No;
       Return v_Result;
     When Failure_Get_Client_Info Then
       v_Result.Result_Code    := 'BSM-00405';
-      v_Result.Result_Message := '§ä¤£¨ìClient ¸ê®Æ';
+      v_Result.Result_Message := 'æ‰¾ä¸åˆ°Client è³‡æ–™';
     
       insert into bsm_purchase_log
         (mas_pk_no, event_date, event_type, event_log)
@@ -3760,7 +3728,7 @@ and a.mas_pk_no=v_Purchase_Pk_No;
       Return v_Result;
     When Failure_crt_tax_info Then
       v_Result.Result_Code    := 'BSM-00406';
-      v_Result.Result_Message := 'µLªk²£¥Íµo²¼Client ¸ê®Æ';
+      v_Result.Result_Message := 'ç„¡æ³•ç”¢ç”Ÿç™¼ç¥¨Client è³‡æ–™';
     
       insert into bsm_purchase_log
         (mas_pk_no, event_date, event_type, event_log)
@@ -3775,7 +3743,7 @@ and a.mas_pk_no=v_Purchase_Pk_No;
     
     When Error_Card_no Then
       v_Result.Result_Code    := 'BSM-00408';
-      v_Result.Result_Message := '¿ù»~ªº¥d¸¹©Î¥dºØ';
+      v_Result.Result_Message := 'éŒ¯èª¤çš„å¡è™Ÿæˆ–å¡ç¨®';
     
       insert into bsm_purchase_log
         (mas_pk_no, event_date, event_type, event_log)
@@ -3790,7 +3758,7 @@ and a.mas_pk_no=v_Purchase_Pk_No;
     
     When Error_Demo_account Then
       v_Result.Result_Code    := 'BSM-00409';
-      v_Result.Result_Message := 'Demo ¾÷¸T¤îÁÊ¶R';
+      v_Result.Result_Message := 'Demo æ©Ÿç¦æ­¢è³¼è²·';
     
       insert into bsm_purchase_log
         (mas_pk_no, event_date, event_type, event_log)
@@ -3804,7 +3772,7 @@ and a.mas_pk_no=v_Purchase_Pk_No;
       Return v_Result;
     When Error_apt_min_null Then
       v_Result.Result_Code    := 'BSM-00410';
-      v_Result.Result_Message := '¨È¤ÓÁÊ¶R¨S¦³MIN½X';
+      v_Result.Result_Message := 'äºå¤ªè³¼è²·æ²’æœ‰MINç¢¼';
     
       insert into bsm_purchase_log
         (mas_pk_no, event_date, event_type, event_log)
@@ -3819,7 +3787,7 @@ and a.mas_pk_no=v_Purchase_Pk_No;
     
     When Error_apt_user Then
       v_Result.Result_Code    := 'BSM-00411';
-      v_Result.Result_Message := '¨È¤ÓÁÊ¶R«D¨È¤Ó¥Î¤á';
+      v_Result.Result_Message := 'äºå¤ªè³¼è²·éäºå¤ªç”¨æˆ¶';
     
       insert into bsm_purchase_log
         (mas_pk_no, event_date, event_type, event_log)
@@ -3832,7 +3800,7 @@ and a.mas_pk_no=v_Purchase_Pk_No;
       Return v_Result;
     When bsm_apt_service.register_error Then
       v_Result.Result_Code    := 'BSM-00412';
-      v_Result.Result_Message := '¨È¤Óª÷¬yÁÊ¶R¿ù»~,µLªkÁÊ¶R';
+      v_Result.Result_Message := 'äºå¤ªé‡‘æµè³¼è²·éŒ¯èª¤,ç„¡æ³•è³¼è²·';
     
       insert into bsm_purchase_log
         (mas_pk_no, event_date, event_type, event_log)
@@ -3845,7 +3813,7 @@ and a.mas_pk_no=v_Purchase_Pk_No;
       Return v_Result;
     When bsm_apt_service.apt_min_error Then
       v_Result.Result_Code    := 'BSM-00413';
-      v_Result.Result_Message := '¨È¤ÓMIN¿ù»~';
+      v_Result.Result_Message := 'äºå¤ªMINéŒ¯èª¤';
     
       insert into bsm_purchase_log
         (mas_pk_no, event_date, event_type, event_log)
@@ -3858,7 +3826,7 @@ and a.mas_pk_no=v_Purchase_Pk_No;
       Return v_Result;
     When bsm_apt_service.apt_product_code Then
       v_Result.Result_Code    := 'BSM-00414';
-      v_Result.Result_Message := '¨È¤Ó²£«~¥N¸¹¿ù»~';
+      v_Result.Result_Message := 'äºå¤ªç”¢å“ä»£è™ŸéŒ¯èª¤';
     
       insert into bsm_purchase_log
         (mas_pk_no, event_date, event_type, event_log)
@@ -3871,7 +3839,7 @@ and a.mas_pk_no=v_Purchase_Pk_No;
       Return v_Result;
     When bsm_apt_service.apt_bought Then
       v_Result.Result_Code    := 'BSM-00415';
-      v_Result.Result_Message := '¨È¤Ó¤wÁÊ¶R¦¹²£«~';
+      v_Result.Result_Message := 'äºå¤ªå·²è³¼è²·æ­¤ç”¢å“';
     
       insert into bsm_purchase_log
         (mas_pk_no, event_date, event_type, event_log)
@@ -3885,7 +3853,7 @@ and a.mas_pk_no=v_Purchase_Pk_No;
     
     When Error_null_otpw Then
       v_Result.Result_Code    := 'BSM-00416';
-      v_Result.Result_Message := '¤¤µØ¤ä¥IOPTW null';
+      v_Result.Result_Message := 'ä¸­è¯æ”¯ä»˜OPTW null';
     
       insert into bsm_purchase_log
         (mas_pk_no, event_date, event_type, event_log)
@@ -3899,7 +3867,7 @@ and a.mas_pk_no=v_Purchase_Pk_No;
     
     When Error_null_authority Then
       v_Result.Result_Code    := 'BSM-00417';
-      v_Result.Result_Message := '¤¤µØ¤ä¥I authority null';
+      v_Result.Result_Message := 'ä¸­è¯æ”¯ä»˜ authority null';
     
       insert into bsm_purchase_log
         (mas_pk_no, event_date, event_type, event_log)
@@ -3913,7 +3881,7 @@ and a.mas_pk_no=v_Purchase_Pk_No;
     
     When Error_Recurrent_Dup Then
       v_Result.Result_Code    := 'BSM-00419';
-      v_Result.Result_Message := 'Recurrent ­«½ÆÁÊ¶R';
+      v_Result.Result_Message := 'Recurrent é‡è¤‡è³¼è²·';
     
       insert into bsm_purchase_log
         (mas_pk_no, event_date, event_type, event_log)
@@ -3926,8 +3894,8 @@ and a.mas_pk_no=v_Purchase_Pk_No;
       Return v_Result;
     When Error_Recurrent_Dup_c Then
       v_Result.Result_Code    := 'BSM-00419';
-      v_Result.Result_Message := 'Recurrent ­«½ÆÁÊ¶R';
-      /* ª¬ºA§ï¬°¥¢±Ñ */
+      v_Result.Result_Message := 'Recurrent é‡è¤‡è³¼è²·';
+      /* ç‹€æ…‹æ”¹ç‚ºå¤±æ•— */
       update bsm_purchase_mas
          set status_flg = 'F'
        where pk_no = v_Purchase_Pk_No;
@@ -3945,7 +3913,7 @@ and a.mas_pk_no=v_Purchase_Pk_No;
       v_Result.Result_Code    := 'BSM-00418';
       v_Result.Result_Message := SQLERRM;
     
-      /* ª¬ºA§ï¬°¥¢±Ñ */
+      /* ç‹€æ…‹æ”¹ç‚ºå¤±æ•— */
       /*  update bsm_purchase_mas
         set status_flg = 'F'
       where pk_no = v_Purchase_Pk_No; */
@@ -4651,7 +4619,7 @@ and a.mas_pk_no=v_Purchase_Pk_No;
           v_delete_flg := 'Y';
         end if;
       
-        -- ª½±µIsert
+        -- ç›´æ¥Isert
         begin
           if length(p_client_id) = 12 or instr(i.device_id, '_') > 0 or
              instr(i.device_id, '-') > 0 or instr(i.device_id, '.') > 0 or
@@ -4976,7 +4944,7 @@ and a.mas_pk_no=v_Purchase_Pk_No;
                                                           In_client_Info.MAC_Address);
       end if;
       v_result.Result_Code    := 'BSM-00000';
-      v_result.Result_Message := '§A¤w¦¨¥\§I´«' || v_msg;
+      v_result.Result_Message := 'ä½ å·²æˆåŠŸå…Œæ›' || v_msg;
     
       begin
       
@@ -5011,51 +4979,51 @@ and a.mas_pk_no=v_Purchase_Pk_No;
   Exception
     When Error_Coupon_No Then
       v_Result.Result_Code    := 'BSM-00601';
-      v_Result.Result_Message := '¿ù»~ªº§I´«¨é¸¹½X';
+      v_Result.Result_Message := 'éŒ¯èª¤çš„å…Œæ›åˆ¸è™Ÿç¢¼';
       Return v_Result;
     When Error_Coupon_Activated Then
       v_Result.Result_Code    := 'BSM-00602';
-      v_Result.Result_Message := '§I´«¨é¤w§I´«¹L';
+      v_Result.Result_Message := 'å…Œæ›åˆ¸å·²å…Œæ›é';
       Return v_Result;
     When Error_Coupon_Status Then
       v_Result.Result_Code    := 'BSM-00603';
-      v_Result.Result_Message := '§I´«¨éªºª¬ºA¿ù»~';
+      v_Result.Result_Message := 'å…Œæ›åˆ¸çš„ç‹€æ…‹éŒ¯èª¤';
       Return v_Result;
     When Error_Coupon_Demo Then
       v_Result.Result_Code    := 'BSM-00606';
-      v_Result.Result_Message := 'Demo ¾÷µLªk¨Ï¥Î¦¹§I´«¨é';
+      v_Result.Result_Message := 'Demo æ©Ÿç„¡æ³•ä½¿ç”¨æ­¤å…Œæ›åˆ¸';
       Return v_Result;
     When Error_Coupon_Model Then
       v_Result.Result_Code    := 'BSM-00607';
-      v_Result.Result_Message := '¦¹¾÷«¬µLªk¨Ï¥Î¦¹§I´«¨é';
+      v_Result.Result_Message := 'æ­¤æ©Ÿå‹ç„¡æ³•ä½¿ç”¨æ­¤å…Œæ›åˆ¸';
       Return v_Result;
     When bsm_purchase_post.demo_on_not_demo_client Then
       v_Result.Result_Code    := 'BSM-00607';
-      v_Result.Result_Message := '®i¥ÜCoupon ¥Î¦b«D®i¥Ü¾÷¤W';
+      v_Result.Result_Message := 'å±•ç¤ºCoupon ç”¨åœ¨éå±•ç¤ºæ©Ÿä¸Š';
       Return v_Result;
     When bsm_purchase_post.coupon_on_demo_client Then
       v_Result.Result_Code    := 'BSM-00608';
-      v_Result.Result_Message := 'Coupon ¥Î¦b®i¥Ü¾÷¤W';
+      v_Result.Result_Message := 'Coupon ç”¨åœ¨å±•ç¤ºæ©Ÿä¸Š';
       Return v_Result;
     when bsm_purchase_post.coupon_group_no_found Then
       v_Result.Result_Code    := 'BSM-00609';
-      v_Result.Result_Message := 'Coupon ¤£¯à¥Î¦b¦¹¾÷«¬¤W';
+      v_Result.Result_Message := 'Coupon ä¸èƒ½ç”¨åœ¨æ­¤æ©Ÿå‹ä¸Š';
       Return v_Result;
     when bsm_purchase_post.coupon_expired Then
       v_Result.Result_Code    := 'BSM-00610';
-      v_Result.Result_Message := 'Coupon ¤w¨ì´Á';
+      v_Result.Result_Message := 'Coupon å·²åˆ°æœŸ';
       Return v_Result;
     when bsm_purchase_post.dup_client_registed Then
       v_Result.Result_Code    := 'BSM-00611';
-      v_Result.Result_Message := '¤@¤á¤G¾÷¤è®× ¤£¯à§I´«¨â¦¸';
+      v_Result.Result_Message := 'ä¸€æˆ¶äºŒæ©Ÿæ–¹æ¡ˆ ä¸èƒ½å…Œæ›å…©æ¬¡';
       Return v_Result;
     when bsm_purchase_post.coupon_program_registed Then
       v_Result.Result_Code    := 'BSM-00614';
-      v_Result.Result_Message := '¨Ï¥ÎªÌ¤w§I´«¹L¦¹¤è®×';
+      v_Result.Result_Message := 'ä½¿ç”¨è€…å·²å…Œæ›éæ­¤æ–¹æ¡ˆ';
       Return v_Result;
       /*  when others then
       v_Result.Result_Code    := 'BSM-00605';
-      v_Result.Result_Message := '¦øªA¾¹µo¥Í°İÃD½Ğ¬¢«ÈªA';
+      v_Result.Result_Message := 'ä¼ºæœå™¨ç™¼ç”Ÿå•é¡Œè«‹æ´½å®¢æœ';
       Return v_Result; */
   End;
 
@@ -5118,7 +5086,7 @@ and a.mas_pk_no=v_Purchase_Pk_No;
     exception
       when no_data_found then
         v_software_group := 'SYSTEM_DEFAULT';
-        -- ¨Ï¥ÎSoftware group §@¬° value id
+        -- ä½¿ç”¨Software group ä½œç‚º value id
     end;
     begin
       select val
@@ -5185,7 +5153,7 @@ and a.mas_pk_no=v_Purchase_Pk_No;
     exception
       when no_data_found then
         v_software_group := 'SYSTEM_DEFAULT';
-        -- ¨Ï¥ÎSoftware group §@¬° value id
+        -- ä½¿ç”¨Software group ä½œç‚º value id
     end;
     begin
       select val
@@ -5427,4 +5395,6 @@ and a.mas_pk_no=v_Purchase_Pk_No;
 --begin
 -- Initialization
 -- <Statement>;
-End Bsm_Client_Service;
+End Bsm_Client_Service_DEV2;
+/
+

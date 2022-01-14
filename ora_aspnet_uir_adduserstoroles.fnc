@@ -1,0 +1,199 @@
+﻿CREATE OR REPLACE FUNCTION IPTV."ORA_ASPNET_UIR_ADDUSERSTOROLES" wrapped
+0
+abcd
+abcd
+abcd
+abcd
+abcd
+abcd
+abcd
+abcd
+abcd
+abcd
+abcd
+abcd
+abcd
+abcd
+abcd
+3
+8
+9200000
+1
+4
+0
+32
+2 :e:
+1FUNCTION:
+1ORA_ASPNET_UIR_ADDUSERSTOROLES:
+1APPLICATIONNAME_:
+1NVARCHAR2:
+1USERNAMES_:
+1ORA_ASPNET_ROLES_PKG:
+1ASSOCARRAYVARCHAR2_T:
+1USERNAMES_ARR_SIZE:
+1INTEGER:
+1ROLENAMES_:
+1ROLENAMES_ARR_SIZE:
+1USERNAME:
+1OUT:
+1ROLENAME:
+1RETURN:
+1OUTRESULT:
+1M_APPID:
+1RAW:
+116:
+1M_USERID:
+1M_ROLEID:
+1M_ROWSCHG:
+10:
+1APPLICATIONID:
+1ORA_ASPNET_APPLICATIONS:
+1LOWER:
+1LOWEREDAPPLICATIONNAME:
+1=:
+1NO_DATA_FOUND:
+1ROLE_NOT_FOUND:
+1I:
+11:
+1LOOP:
+1ROLEID:
+1ORA_ASPNET_ROLES:
+1LOWEREDROLENAME:
+1USERID:
+1ORA_ASPNET_USERS:
+1LOWEREDUSERNAME:
+1ISANONYMOUS:
+1LASTACTIVITYDATE:
+1SYS_EXTRACT_UTC:
+1SYSTIMESTAMP:
+1J:
+1K:
+1ORA_ASPNET_USERSINROLES:
+1UNIQUE_CONSTRAINT_VIOLATED:
+1ROLLBACK:
+1ROLLBACK_NR:
+1THIS_USER_ALREADY_IN_ROLE:
+0
+
+0
+0
+181
+2
+0 a0 8d 8f a0 b0 3d 8f
+:2 a0 6b b0 3d 8f a0 b0 3d
+8f :2 a0 6b b0 3d 8f a0 b0
+3d 96 :2 a0 b0 54 96 :2 a0 b0
+54 b4 :2 a0 2c 6a a3 a0 1c
+81 b0 a3 a0 51 a5 1c 4d
+81 b0 a3 a0 51 a5 1c 4d
+81 b0 a3 a0 51 a5 1c 4d
+81 b0 a3 a0 1c 51 81 b0
+a0 ac :2 a0 b2 ee :2 a0 a5 b
+a0 7e b4 2e ac e5 d0 b2
+e9 b7 :4 a0 6b 65 b7 a6 9
+a4 b1 11 4f 91 51 :2 a0 63
+37 a0 ac :2 a0 b2 ee :3 a0 a5
+b a5 b a0 7e b4 2e :2 a0
+7e b4 2e a 10 ac e5 d0
+b2 e9 b7 :4 a0 a5 b d :3 a0
+6b 65 b7 a6 9 a4 b1 11
+4f b7 a0 47 91 51 :2 a0 63
+37 a0 ac :2 a0 b2 ee :2 a0 7e
+:2 a0 a5 b a5 b b4 2e :2 a0
+7e b4 2e a 10 ac e5 d0
+b2 e9 b7 :a a0 a5 b :3 a0 a5
+b a5 b 51 :2 a0 a5 b 5
+d7 b2 5 e9 b7 a6 9 a4
+b1 11 4f b7 a0 47 b7 a4
+b1 11 4f a0 4d d a0 4d
+d 91 51 :2 a0 63 37 a0 ac
+:2 a0 b2 ee :2 a0 7e :2 a0 a5 b
+a5 b b4 2e :2 a0 7e b4 2e
+a 10 ac e5 d0 b2 e9 91
+51 :2 a0 63 37 a0 ac :2 a0 b2
+ee :3 a0 a5 b a5 b a0 7e
+b4 2e :2 a0 7e b4 2e a 10
+ac e5 d0 b2 e9 :5 a0 5 d7
+b2 5 e9 b7 :2 a0 6b a0 57
+a0 b4 e9 :3 a0 a5 b d :3 a0
+a5 b d :3 a0 6b 65 b7 a6
+9 a4 b1 11 4f b7 a0 47
+b7 a0 47 a0 51 65 b7 a4
+b1 11 68 4f 1d 17 b5
+181
+2
+0 3 7 23 1f 1e 2b 3c
+34 38 1b 33 44 51 4d 30
+59 69 5e 62 66 4c 71 7e
+7a 49 86 93 8b 8f 79 9a
+ab a3 a7 76 b2 a2 b7 bb
+bf c3 dc cb cf d7 9f f9
+e3 e7 ea eb f3 f4 ca 117
+104 c7 108 109 111 112 103 135
+122 100 126 127 12f 130 121 151
+140 144 11e 14c 13f 158 13c 15c
+160 164 165 16c 170 174 175 177
+17b 17e 17f 184 185 18b 18f 190
+195 197 19b 19f 1a3 1a7 1aa 1ae
+1b0 1b1 1b6 1ba 1bc 1c8 1ca 1ce
+1d1 1d5 1d9 1dd 1df 1e3 1e4 1e8
+1ec 1ed 1f4 1f8 1fc 200 201 203
+204 206 20a 20d 20e 213 217 21b
+21e 21f 1 224 229 22a 230 234
+235 23a 23c 240 244 248 24c 24d
+24f 253 257 25b 25f 262 266 268
+269 26e 272 274 280 282 284 288
+28f 293 296 29a 29e 2a2 2a4 2a8
+2a9 2ad 2b1 2b2 2b9 2bd 2c1 2c4
+2c8 2cc 2cd 2cf 2d0 2d2 2d3 2d8
+2dc 2e0 2e3 2e4 1 2e9 2ee 2ef
+2f5 2f9 2fa 2ff 301 305 309 30d
+311 315 319 31d 321 325 329 32a
+32c 330 334 338 339 33b 33c 33e
+341 345 349 34a 34c 350 358 359
+35d 362 364 365 36a 36e 370 37c
+37e 380 384 38b 38d 391 393 39f
+3a1 3a5 3a6 3aa 3ae 3af 3b3 3b7
+3ba 3be 3c2 3c6 3c8 3cc 3cd 3d1
+3d5 3d6 3dd 3e1 3e5 3e8 3ec 3f0
+3f1 3f3 3f4 3f6 3f7 3fc 400 404
+407 408 1 40d 412 413 419 41d
+41e 423 427 42a 42e 432 436 438
+43c 43d 441 445 446 44d 451 455
+459 45a 45c 45d 45f 463 466 467
+46c 470 474 477 478 1 47d 482
+483 489 48d 48e 493 497 49b 49f
+4a3 4a7 4ab 4b3 4b4 4b8 4bd 4bf
+4c3 4c7 4ca 4ce 4d3 4d7 4d8 4dd
+4e1 4e5 4e9 4ea 4ec 4f0 4f4 4f8
+4fc 4fd 4ff 503 507 50b 50f 512
+516 518 519 51e 522 524 530 532
+534 538 53f 541 545 54c 550 553
+557 559 55d 55f 56b 56f 571 572
+57b
+181
+2
+0 1 a 3 1d :3 3 17 2c
+17 :3 3 20 :3 3 12 27 12 :3 3
+20 :3 3 d 11 :3 3 d 11 :2 3
+:2 1 8 :2 1 3 :3 e :2 3 c 10
+f c 17 c :2 3 d 11 10
+d 18 d :2 3 d 11 10 d
+18 d :2 3 :2 e 19 e 3 :2 9
+1c 29 24 29 b 11 :2 b 25
+:3 23 24 :4 2 1 8 4 b :2 20
+4 16 :2 3 2 :3 1 6 b e
+21 b 2 :2 b 17 25 20 25
+c 12 1d :2 12 :2 c 23 :3 21 37
+47 :3 45 :2 c 20 :4 4 3 b 8
+14 1f :2 14 :2 8 f :2 24 8 19
+:2 6 4 :4 21 6 2 6 b e
+21 b 2 :2 b 17 b 6 b
+e 20 1e 26 31 :2 26 :2 20 :2 1e
+39 49 :3 47 :2 e 6 :4 4 3 a
+14 26 35 3f 50 5d c 15
+20 :2 15 24 2a 35 :2 2a :2 24 3a
+3d 4d :2 3d b :4 8 18 :2 5 4
+:4 21 6 2 :6 1 d :2
+/
+
